@@ -7,7 +7,7 @@ Date: 2007 Jan 26
                             TD of
  Cat. Canon    Calendar   Greatest          Luna Saros Ecl.           Ecl.                Sun  Sun  Path Central
   No. Plate      Date      Eclipse     DT    Num  Num  Type  Gamma    Mag.   Lat.   Long. Alt  Azm Width   Dur.
-                                       s                                      ¡      ¡     ¡    ¡   km
+                                       s                                      ï¿½      ï¿½     ï¿½    ï¿½   km
     1  001  -1999 Jun 12  03:14:51  46438 -49456    5   T   -0.2701  1.0733   6.0N  33.3W  74  344  247  06m37s
     2  001  -1999 Dec 05  23:45:23  46426 -49450   10   A   -0.2317  0.9382  32.9S  10.8E  76   21  236  06m44s
     3  001  -1998 Jun 01  18:09:16  46415 -49444   15   T    0.4994  1.0284  46.2N  83.4E  60  151  111  02m15s

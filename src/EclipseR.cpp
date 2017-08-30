@@ -29,10 +29,10 @@ int main() {
 	//lineNum++;
 	//cout << nextLine << endl;
 	//hoi
+
 	while(getline(cin, nextLine)) {
 	string columns[20];
 	lineNum++;
-	cout << "next" << endl;
 	int numCols = ColumnSplitter(columns, nextLine);
 	//Check for correct # of columns based on eclipse type
 	if (columns[9].at(0) == 'P') {
@@ -46,8 +46,7 @@ int main() {
 	}
 
 	//Check for unique catalog number
-	/*if(columns[0] == "FIX")
-	}*/
+	//Update offset from id and lineNum
 
 	//Print out in CSV format, loop except last column
 	for(int i = 0; i < numCols-1; i++) {
@@ -58,13 +57,15 @@ int main() {
 	//Read next line
 	//getline(cin, nextLine);
 	//lineNum++;
-	if(std::cin.eof())
-	{
-		break;
-	}
+	//cout << "Before if" << endl;
+
+
+	//cout << "After if" << endl;
 	}
 
-	return 1;
+	//cout << "Done" << endl;
+
+	return 0;
 }
 
 int ColumnSplitter(string columns[], const string nextLine) {
@@ -74,7 +75,6 @@ int ColumnSplitter(string columns[], const string nextLine) {
 	int partStart = 0;
 	int partEnd = 0;
 	bool isWriting = false;
-	cout << nextLine.length() << endl;
 	for (unsigned int i = 0; i < nextLine.length(); i++) {
 		//If the next character is a space...
 		if(nextLine.at(i) == ' ') {
