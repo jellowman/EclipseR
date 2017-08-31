@@ -35,3 +35,12 @@
 .cproject
 
 .settings/language.settings.xml
+/Release/
+
+out.err
+
+out.txt
+
+*.prefs
+
+.settings/org.eclipse.cdt.managedbuilder.core.prefs

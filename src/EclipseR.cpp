@@ -2,7 +2,6 @@
 // Name        : EclipseR.cpp
 // Author      : Trevor Fisher
 // Version     : 0.1
-// Copyright   : N/A
 // Description : Initial i/o implementation for EclipseR Software
 //============================================================================
 
@@ -14,7 +13,11 @@ using namespace std;
 
 
 int main() {
-
+	//Instantiate array holding used IDs to false
+	for(int i = 0; i < 20000; i++)
+	{
+		eclipseID[i] = false;
+	}
 	//Variable used to hold next line from the eclipse data text file
 	string nextLine;
 	int lineNum = 0;
@@ -46,19 +49,24 @@ int main() {
 	}
 
 	//Check for unique catalog number
-	//Update offset from id and lineNum
+	int idNum = stoi(columns[0]);
+	if(eclipseID[idNum] == true) //true means it's a duplicate ID
+	{
+		cerr << "DUPLICATE ID FOUND: ID no. " << idNum << endl;
+	} else {
+		eclipseID[idNum] = true;
 
-	//Print out in CSV format, loop except last column
-	for(int i = 0; i < numCols-1; i++) {
-		cout << columns[i] << ",";
+		//Print out in CSV format, loop except last column
+		for(int i = 0; i < numCols-1; i++) {
+			cout << columns[i] << ",";
+		}
+		cout << columns[numCols-1] << endl;
 	}
-	cout << columns[numCols-1] << endl;
 
-	//Read next line
-	//getline(cin, nextLine);
-	//lineNum++;
-	//cout << "Before if" << endl;
-
+	if(!cin.good()) //DOES NOT WORK
+	{
+		break;
+	}
 
 	//cout << "After if" << endl;
 	}
@@ -68,13 +76,16 @@ int main() {
 	return 0;
 }
 
+//Function to take the whitespace separated columns in nextLine and
+//put them in individual string indexes in columns.
 int ColumnSplitter(string columns[], const string nextLine) {
 
-	//int charPos = 0;
 	int columnPos = -1;
 	int partStart = 0;
 	int partEnd = 0;
 	bool isWriting = false;
+
+	//Traverse the characters in nextLine
 	for (unsigned int i = 0; i < nextLine.length(); i++) {
 		//If the next character is a space...
 		if(nextLine.at(i) == ' ') {
@@ -87,8 +98,6 @@ int ColumnSplitter(string columns[], const string nextLine) {
 				//Writes the characters from the eclipse file that correspond to the next column
 				columnPos += 1;
 				columns[columnPos] = nextLine.substr(partStart, (partEnd-partStart+1));
-
-				//cout << nextLine.substr(partStart, (partEnd-partStart+1)) << endl;
 
 				//Indicate that the column characters are done being read, prepare for next column
 				isWriting = false;
