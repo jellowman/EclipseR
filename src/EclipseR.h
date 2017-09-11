@@ -5,10 +5,6 @@
  */
 using namespace std;
 
-//Array used to hold already entered eclipse IDs
-bool eclipseID[20000];
-
-
 //Main method of program, enuf said
 int main();
 
