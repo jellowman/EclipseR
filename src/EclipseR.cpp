@@ -12,6 +12,8 @@ using namespace std;
 
 
 int main() {
+	bool eclipseID[20000];
+
 	//Instantiate array holding used IDs to false
 	for(int i = 0; i < 20000; i++)
 	{
