@@ -15,7 +15,7 @@ using namespace std;
 
 
 int main() {
-
+	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
 	bool eclipseID[20000];
 
 	//Instantiate array holding used IDs to false
@@ -117,10 +117,6 @@ int main() {
 
 			//Add to eclipse array
 			eclipses->Add(*columnStrings);
-			/*for(int i = 0; i < numCols-1; i++) {
-				cout << columnStrings->Get(i) << ",";
-			}
-			cout << columnStrings->Get(numCols-1) << endl; */
 		}
 
 		if(!cin.good()) //DOES NOT WORK, attempt to break out if end of file is reached
@@ -202,9 +198,11 @@ int ColumnSplitter(Tarray<string> *columnStrings, const string nextLine) {
 	return columnPos+1; //Return number of columns as 1-indexed
 } //END Function ColumnSplitter()
 
+//Checks to see if column entry is numeric, returns true if bad formatting
 bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int lineNum) {
 	bool isBad = false;
-	if(isInt) {
+	if(isInt) { //Checking for integer
+		//Iterate through string
 		for(char c : colStrings->Get(column-1)) {
 			if(!isdigit(c) && (c != '-')) {
 				isBad = true;
@@ -212,8 +210,9 @@ bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int line
 				break;
 			}
 		}
-	} else {
+	} else { //Checking for double-formatted number
 		int numDecimals = 0;
+		//Iterate through string
 		for(char c : colStrings->Get(column-1)) {
 			if(c == '.')
 				numDecimals++;
