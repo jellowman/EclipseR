@@ -1,18 +1,31 @@
 //============================================================================
 // Name        : EclipseR.cpp
 // Author      : Trevor Fisher
-// Version     : 0.1
+// Version     : 0.2
 // Description : Initial i/o implementation for EclipseR Software
 //============================================================================
+
 
 #include <iostream>
 #include <string>
 #include "EclipseR.h"
+#include "Tarray.h"
+#include "Bool.h"
 using namespace std;
 
 
 int main() {
+
 	bool eclipseID[20000];
+
+	//Instantiate array holding used IDs to false
+	for(int i = 0; i < 20000; i++)
+	{
+		eclipseID[i] = false;
+	}
+
+	//Keep track of eclipses (just a string array of strings for now)
+	Tarray<Tarray<string> > *eclipses = new Tarray<Tarray<string> >(10);
 
 	//Instantiate array holding used IDs to false
 	for(int i = 0; i < 20000; i++)
@@ -22,54 +35,98 @@ int main() {
 
 	//Variable used to hold next line from the eclipse data text file
 	string nextLine;
-	//Keeps track of the line number from input file
+	//Keeps track of the line number from input file, not including header lines
 	int lineNum = 0;
 
 	//Read past the "junk lines" at the beginning of the file
 	for(int i = 0; i < 10; i++) {
 		getline(cin, nextLine);
-		lineNum++;
+		//lineNum++;
 	}
 
-	//getline(cin, nextLine);
-	//lineNum++;
-	//cout << nextLine << endl;
-	//hoi
-
 	//Loop through input file until the end of file is reached (Does not work properly, processing getline() never returns)
-	while(getline(cin, nextLine)) { //Must CTRL+Z to end program
+	//while(getline(cin, nextLine)) { //Must CTRL+Z to end program
+	while(lineNum < 26) {
+		getline(cin, nextLine);
 		lineNum++;
-
 		//string array to hold individual columns from file
-		string columns[20];
+		Tarray<string> *columnStrings = new Tarray<string>();
 
 		//Read nextLine, put parts into columns
-		int numCols = ColumnSplitter(columns, nextLine);
+		int numCols = ColumnSplitter(columnStrings, nextLine);
+
+		//Begin error checking content of lines
+		//Hold type of eclipse
+		int eclipseType = -1;
 
 		//Check for correct # of columns based on eclipse type
-		if (columns[9].at(0) == 'P') {
+		if ((columnStrings->Get(9)).at(0) == 'P') {
+			//Set eclipse to partial type
+			eclipseType = 0;
 			if(numCols != 16) {
-				cerr << "INCORRECT COLUMNS for P-Type Eclipse on line: " << lineNum << endl;
+				cerr << "Error in data row " << lineNum << ": " << numCols <<
+						" columns found. Should be 16." << endl;
+				//Move to next line
+				continue;
 			}
 		} else {
+			//Set eclipse type to 'other'
+			eclipseType = 1;
 			if(numCols != 18) {
-				cerr << "INCORRECT COLUMNS for Non-P-Type Eclipse on line: " << lineNum << endl;
+				cerr << "Error in data row " << lineNum << ": " << numCols <<
+						" columns found. Should be 18." << endl;
+				//Move to next line
+				continue;
 			}
 		}
 
+		//Test to see if Integer columns have integers
+		bool isBad = false;
+		switch(eclipseType) {
+		case 1:
+			//Check if column 17 is integer
+			isBad = IsColumnNumber(columnStrings, 17, true, lineNum);
+			//intentionally no break
+		case 0:
+			//Check if columns 1,2,3,5,7,8,9,15,and 16 are Integers
+			isBad = IsColumnNumber(columnStrings, 1, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 2, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 3, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 5, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 7, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 8, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 9, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 15, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 16, true, lineNum) || isBad;
+
+			//Check if 11 and 12 are decimals
+			isBad = IsColumnNumber(columnStrings, 11, false, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 12, false, lineNum) || isBad;
+			break;
+		default:
+			break;
+		}
+
+		//Break out to read next line if any number formatting failed
+		if(isBad)
+			continue;
+
 		//Check for unique catalog number
-		int idNum = stoi(columns[0]);
+		int idNum = 0;
+		idNum = stoi(columnStrings->Get(0));
 		if(eclipseID[idNum] == true) { //true means it's a duplicate ID
-			cerr << "DUPLICATE ID FOUND: ID no. " << idNum << endl;
+			cerr << "Error in data row " << lineNum << ": Duplicate catalog number "
+					<< idNum << "." << endl;
 		} else {
 			//Indicate an ID has been used
 			eclipseID[idNum] = true;
 
-			//Print out in CSV format, loop except last column
+			//Add to eclipse array
+			eclipses->Add(*columnStrings);
 			for(int i = 0; i < numCols-1; i++) {
-				cout << columns[i] << ",";
+				cout << columnStrings->Get(i) << ",";
 			}
-			cout << columns[numCols-1] << endl;
+			cout << columnStrings->Get(numCols-1) << endl;
 		}
 
 		if(!cin.good()) //DOES NOT WORK, attempt to break out if end of file is reached
@@ -82,11 +139,12 @@ int main() {
 	//cout << "Done" << endl;
 
 	return 0;
+
 } //END main() method
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.
-int ColumnSplitter(string columns[], const string nextLine) {
+int ColumnSplitter(Tarray<string> *columnStrings, const string nextLine) {
 
 	//The data column being read (0 indexed)
 	int columnPos = -1;
@@ -109,7 +167,7 @@ int ColumnSplitter(string columns[], const string nextLine) {
 				partEnd = i-1;
 				//Writes the characters from the eclipse file that correspond to the next column
 				columnPos += 1;
-				columns[columnPos] = nextLine.substr(partStart, (partEnd-partStart+1));
+				columnStrings->AddCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
 
 				//Indicate that the column characters are done being read, prepare for next column
 				isWriting = false;
@@ -133,8 +191,36 @@ int ColumnSplitter(string columns[], const string nextLine) {
 	if(isWriting) {
 		partEnd = nextLine.size()-1;
 		columnPos += 1;
-		columns[columnPos] = nextLine.substr(partStart, (partEnd-partStart+1));
+		columnStrings->AddCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
 	}
-
+	/*if(columnPos+1 != columnStrings->Size())
+	{
+		cerr << "OH NO" << endl;
+	}*/
 	return columnPos+1; //Return number of columns as 1-indexed
 } //END Function ColumnSplitter()
+
+bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int lineNum) {
+	bool isBad = false;
+	if(isInt) {
+		for(char c : colStrings->Get(column-1)) {
+			if(!isdigit(c) && (c != '-')) {
+				isBad = true;
+				cerr << "Error in data row " << lineNum << ": Column " << column << " is not a whole number." << endl;
+				break;
+			}
+		}
+	} else {
+		int numDecimals = 0;
+		for(char c : colStrings->Get(column-1)) {
+			if(c == '.')
+				numDecimals++;
+			if((!isdigit(c) && (c != '.') && (c != '-')) || numDecimals > 1) {
+				isBad = true;
+				cerr << "Error in data row " << lineNum << ": Column " << column << " is not a decimal number." << endl;
+				break;
+			}
+		}
+	}
+	return isBad;
+}

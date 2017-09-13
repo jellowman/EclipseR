@@ -1,0 +1,7 @@
+/Users/trevorfisher/Documents/workspace/EclipseR/src/Tarray.cpp:13:1: error: 'Tarray' is not a class, namespace, or enumeration
+Tarray::Tarray() {
+^
+/Users/trevorfisher/Documents/workspace/EclipseR/src/Tarray.h:10:7: note: 'Tarray' declared here
+class Tarray {
+      ^
+1 error generated.
