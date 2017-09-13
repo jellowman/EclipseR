@@ -39,9 +39,9 @@ int main() {
 	}
 
 	//Loop through input file until the end of file is reached (Does not work properly, processing getline() never returns)
-	//while(getline(cin, nextLine)) { //Must CTRL+Z to end program
-	while(lineNum < 26) {
-		getline(cin, nextLine);
+	while(getline(cin, nextLine)) { //Must CTRL+Z to end program
+	//while(lineNum < 26) {
+		//getline(cin, nextLine);
 		lineNum++;
 		//string array to hold individual columns from file
 		Tarray<string> *columnStrings = new Tarray<string>();
