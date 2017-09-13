@@ -10,6 +10,7 @@ public:
 	Tarray();
 	Tarray(int initSize);
 	~Tarray();
+	//Tarray<T>& operator=(const Tarray<T>& otherArray);
 	void Add(T& newT);
 	void AddCopy(T newT);
 	void Remove(int index);
@@ -41,6 +42,7 @@ Tarray<T>::Tarray() {
 template<typename T>
 Tarray<T>::~Tarray() {
 	delete [] array;
+	return;
 }
 
 template<typename T>
@@ -55,13 +57,24 @@ Tarray<T>::Tarray(int initSize) {
 	return;
 }
 
+/*
+template<typename T>
+Tarray<T>& Tarray<T>::operator=(const Tarray<T>& otherArray) {
+	delete [] array;
+	array = new T[otherArray.currentSize];
+	*array = *(otherArray.array);
+	currentSize = otherArray.currentSize;
+	nextOpenSlot = otherArray.nextOpenSlot;
+	return *this;
+} */
+
 template<typename T>
 void Tarray<T>::Add(T& newT) {
 	if(nextOpenSlot < currentSize) {
 		array[nextOpenSlot] = newT;
 		nextOpenSlot++;
 	} else {
-		T *newArray = new T[currentSize*2];
+		T *newArray = new T[currentSize*2];// = new T[currentSize*2];
 		for(int i = 0; i < currentSize; i++) {
 			newArray[i] = array[i];
 			//cout << "Copying: " << array[i] << endl;
@@ -70,8 +83,9 @@ void Tarray<T>::Add(T& newT) {
 		//	*newArray[i] = NULL;
 		//}
 		//cout << "Before copy: " << array[1] << endl;
-		delete [] array;
+		//delete [] array;
 		array = newArray;
+		//*array = *newArray;
 		//cout << "After copy: " << array[1] << endl;
 
 		currentSize = currentSize*2;
@@ -96,8 +110,9 @@ void Tarray<T>::AddCopy(T newT) {
 		//	*newArray[i] = NULL;
 		//}
 		//cout << "Before copy: " << array[1] << endl;
-		delete [] array;
+		//delete [] array;
 		array = newArray;
+		//*array = *newArray;
 		//cout << "After copy: " << array[1] << endl;
 
 		currentSize = currentSize*2;
@@ -142,11 +157,11 @@ T& Tarray<T>::operator[] (int i) {
 template<typename T>
 void Tarray<T>::Set(int i, T value) {
 	if(i >= nextOpenSlot) {
-		cerr << "INVALID REMOVE RANGE: Size specified: " << index << ". Max size: "
+		cerr << "INVALID SET RANGE: Size specified: " << i << ". Max size: "
 						<< nextOpenSlot-1 << endl;
 		return;
 	} else {
-	*array[i] = value;
+	array[i] = value;
 	return;
 	}
 }

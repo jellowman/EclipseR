@@ -27,12 +27,6 @@ int main() {
 	//Keep track of eclipses (just a string array of strings for now)
 	Tarray<Tarray<string> > *eclipses = new Tarray<Tarray<string> >(10);
 
-	//Instantiate array holding used IDs to false
-	for(int i = 0; i < 20000; i++)
-	{
-		eclipseID[i] = false;
-	}
-
 	//Variable used to hold next line from the eclipse data text file
 	string nextLine;
 	//Keeps track of the line number from input file, not including header lines
@@ -123,10 +117,10 @@ int main() {
 
 			//Add to eclipse array
 			eclipses->Add(*columnStrings);
-			for(int i = 0; i < numCols-1; i++) {
+			/*for(int i = 0; i < numCols-1; i++) {
 				cout << columnStrings->Get(i) << ",";
 			}
-			cout << columnStrings->Get(numCols-1) << endl;
+			cout << columnStrings->Get(numCols-1) << endl; */
 		}
 
 		if(!cin.good()) //DOES NOT WORK, attempt to break out if end of file is reached
@@ -136,7 +130,15 @@ int main() {
 
 	} //END while loop
 
-	//cout << "Done" << endl;
+	//Now, print out eclipses in reverse order
+	for(int i = eclipses->Size() - 1; i >= 0; i--) {
+		Tarray<string> anEclipse = eclipses->Get(i);
+		//Print out each column in CSV format
+		for(int j = 0; j < anEclipse.Size()-1; j++) {
+			cout << anEclipse.Get(j) << ",";
+		}
+			cout << anEclipse.Get(anEclipse.Size()-1) << endl;
+	}
 
 	return 0;
 
@@ -193,10 +195,10 @@ int ColumnSplitter(Tarray<string> *columnStrings, const string nextLine) {
 		columnPos += 1;
 		columnStrings->AddCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
 	}
-	/*if(columnPos+1 != columnStrings->Size())
+	if(columnPos+1 != columnStrings->Size())
 	{
 		cerr << "OH NO" << endl;
-	}*/
+	}
 	return columnPos+1; //Return number of columns as 1-indexed
 } //END Function ColumnSplitter()
 
