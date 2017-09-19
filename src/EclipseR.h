@@ -23,4 +23,7 @@ int ColumnSplitter(Tarray<string> *stringColumns, const string nextLine);
 //lineNum - The line in the input file
 bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int lineNum);
 
+//Unit test for templated array class
+void TestArrayTemplate();
+
 

@@ -2,12 +2,13 @@
 // Name        : Tarray.h
 // Author      : Trevor Fisher
 // Version     : 0.2
-// Description : Tarray (Teriffic Array) is a generic template to handle
+// Description : Tarray (Terrific Array) is a generic template to handle
 //               an array of any class.
 //========================================================================
 #ifndef TARRAY_H
 #define TARRAY_H
 
+#include <iostream>
 #include <string>
 using namespace std;
 
@@ -17,16 +18,20 @@ class Tarray {
 public:
 	Tarray();
 	Tarray(int initSize);
+	//Tarray(const Tarray<T>& copyArray);
 	~Tarray();
 	Tarray<T>& operator=(const Tarray<T>& otherArray);
 	void Add(T& newT);
 	void AddCopy(T newT);
+	void RemoveDel(int index);
 	void Remove(int index);
 	T Get(int i);
 	T& operator[](int i);
-	void Set(int i, T value);
+	void Set(int i, T& value);
 	bool HasValue(int index);
 	int Size();
+	int ACTUAL_SIZE();
+	template<typename U> friend std::ostream& operator<< (std::ostream& os, const Tarray<U>& thisObject);
 
 private:
 	static const int INIT_SIZE = 10;
@@ -71,6 +76,19 @@ Tarray<T>::Tarray(int initSize) {
 	return;
 }
 
+//Clone constructor
+/*template<typename T>
+Tarray<T>::Tarray(const Tarray<T>& copyArray) {
+	this->nextOpenSlot = copyArray.nextOpenSlot;
+	this->currentSize = copyArray.currentSize;
+	this->array = new T[copyArray.currentSize];
+
+	for(int i = 0; i < this->nextOpenSlot; i++) {
+		this->array[i] = new T(copyArray.array[i]);
+	}
+	return;
+}*/
+
 //Copy overloader to deep copy
 template<typename T>
 Tarray<T>& Tarray<T>::operator=(const Tarray<T>& otherArray) {
@@ -102,7 +120,7 @@ void Tarray<T>::Add(T& newT) {
 		//	*newArray[i] = NULL;
 		//}
 		//cout << "Before copy: " << array[1] << endl;
-		delete [] array;
+		//delete [] array;
 		array = newArray;
 		//cout << "After copy: " << array[1] << endl;
 
@@ -123,16 +141,13 @@ void Tarray<T>::AddCopy(T newT) {
 		T *newArray = new T[currentSize*2];
 		for(int i = 0; i < currentSize; i++) {
 			newArray[i] = array[i];
-			//cout << "Copying: " << array[i] << endl;
 		}
 		//for(int i = currentSize; i < currentSize * 2; i++) {
 		//	*newArray[i] = NULL;
 		//}
-		//cout << "Before copy: " << array[1] << endl;
-		delete [] array;
+		//delete [] array;
 		array = newArray;
 		//delete [] newArray;
-		//cout << "After copy: " << array[1] << endl;
 
 		currentSize = currentSize*2;
 		array[nextOpenSlot] = newT;
@@ -141,14 +156,54 @@ void Tarray<T>::AddCopy(T newT) {
 	return;
 }
 
-//Removes an object from specified index
+//Removes an object from specified index and deletes it
 template<typename T>
-void Tarray<T>::Remove(int index) {
+void Tarray<T>::RemoveDel(int index) {
 	if(index < nextOpenSlot) {
+		//Delete and move pointers
+		delete *array[index];
 		for(int i = index; i < nextOpenSlot - 1; i++) {
 			array[i] = array[i+1];
 		}
 		nextOpenSlot--;
+		//Check to see if there are fewer than half elements in actual sized array
+		if(nextOpenSlot < (currentSize/2)) {
+			//Create new array of half size and fill it with existing elements
+			T *newArray = new T[currentSize/2];
+			for(int i = 0; i < nextOpenSlot; i++) {
+				newArray[i] = array[i];
+			}
+			delete [] array;
+			array = newArray;
+			currentSize = currentSize/2;
+		}
+	} else {
+		cerr << "INVALID REMOVE RANGE: Size specified: " << index << ". Max size: "
+				<< nextOpenSlot-1 << endl;
+	}
+	return;
+}
+
+//Removes an object from specified index
+template<typename T>
+void Tarray<T>::Remove(int index) {
+	if(index < nextOpenSlot) {
+		//Move pointers, so object is not deleted, but not pointed to in this array
+		for(int i = index; i < nextOpenSlot - 1; i++) {
+			array[i] = array[i+1];
+		}
+		nextOpenSlot--;
+		//Check to see if there are fewer than half elements in actual sized array
+		if(nextOpenSlot < (currentSize/2)) {
+			//Create new array of half size and fill it with existing elements
+			T *newArray = new T[currentSize/2];
+			for(int i = 0; i < nextOpenSlot; i++) {
+				newArray[i] = array[i];
+			}
+			delete [] array;
+			array = newArray;
+			currentSize = currentSize/2;
+		}
 	} else {
 		cerr << "INVALID REMOVE RANGE: Size specified: " << index << ". Max size: "
 				<< nextOpenSlot-1 << endl;
@@ -176,7 +231,7 @@ T& Tarray<T>::operator[] (int i) {
 
 //Set a value at an index in Tarray to T
 template<typename T>
-void Tarray<T>::Set(int i, T value) {
+void Tarray<T>::Set(int i, T& value) {
 	if(i >= nextOpenSlot) {
 		cerr << "INVALID SET RANGE: Size specified: " << i << ". Max size: "
 						<< nextOpenSlot-1 << endl;
@@ -201,6 +256,22 @@ bool Tarray<T>::HasValue(int index) {
 template<typename T>
 int Tarray<T>::Size() {
 	return nextOpenSlot;
+}
+
+//Returns actual size (USE ONLY FOR DEBUGGING PURPOSES)
+template<typename T>
+int Tarray<T>::ACTUAL_SIZE() {
+	return currentSize;
+}
+
+//Support for printing to ostream in CSV format
+template<typename T>
+std::ostream& operator<< (std::ostream& os, const Tarray<T>& thisObject) {
+	for(int i = 0; i < thisObject.nextOpenSlot-1; i++) {
+		os << (thisObject.array)[i] << ",";
+	}
+	os << (thisObject.array)[thisObject.nextOpenSlot-1];
+	return os;
 }
 
 #endif

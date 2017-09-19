@@ -10,11 +10,14 @@
 #include <string>
 #include "EclipseR.h"
 #include "Tarray.h"
-#include "Bool.h"
+#include "Eclipse.h"
 using namespace std;
 
 
 int main() {
+	//Unit testing
+	TestArrayTemplate();
+
 	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
 	bool eclipseID[20000];
 
@@ -39,9 +42,9 @@ int main() {
 	}
 
 	//Loop through input file until the end of file is reached (Does not work properly, processing getline() never returns)
-	while(getline(cin, nextLine)) { //Must CTRL+Z to end program
-	//while(lineNum < 26) {
-		//getline(cin, nextLine);
+	//while(getline(cin, nextLine)) { //Must CTRL+Z to end program
+	while(lineNum < 26) {
+		getline(cin, nextLine);
 		lineNum++;
 		//string array to hold individual columns from file
 		Tarray<string> *columnStrings = new Tarray<string>();
@@ -133,7 +136,7 @@ int main() {
 		for(int j = 0; j < anEclipse.Size()-1; j++) {
 			cout << anEclipse.Get(j) << ",";
 		}
-			cout << anEclipse.Get(anEclipse.Size()-1) << endl;
+		cout << anEclipse.Get(anEclipse.Size()-1) << endl;
 	}
 
 	return 0;
@@ -191,10 +194,10 @@ int ColumnSplitter(Tarray<string> *columnStrings, const string nextLine) {
 		columnPos += 1;
 		columnStrings->AddCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
 	}
-	if(columnPos+1 != columnStrings->Size())
+	/*if(columnPos+1 != columnStrings->Size())
 	{
 		cerr << "OH NO" << endl;
-	}
+	}*/
 	return columnPos+1; //Return number of columns as 1-indexed
 } //END Function ColumnSplitter()
 
@@ -224,4 +227,100 @@ bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int line
 		}
 	}
 	return isBad;
+}
+
+void TestArrayTemplate() {
+
+	//Test on primitive data type
+	Tarray<double> *testArray;
+	testArray = new Tarray<double>(6);
+
+	int i = testArray->ACTUAL_SIZE();
+	if(i != 6)
+	{
+		cerr << "Specified size and/or Size() method not working" << endl;
+	}
+
+	delete testArray;
+
+	testArray = new Tarray<double>();
+	i = testArray->ACTUAL_SIZE();
+	if(i != 10)
+		cerr << "Default constructor not initializing to 10" << endl;
+
+	double one = 1.0;
+	double two = 2.3;
+	double three = 3.5;
+
+	testArray->Add(one);
+	testArray->Add(two);
+	testArray->Add(three);
+
+	double diff = testArray->Get(1) - 2.3;
+	if((diff < -0.001) || (diff > 0.001))
+		cerr << "Get method not working" << endl;
+
+	//Add 14 more numbers
+	for(int i = 0; i < 14; i++) {
+		//string test;
+		//test = "test" + to_string(i);
+		double tdouble = 4.1+i;
+		testArray->Add(tdouble);
+	}
+
+	i = testArray->Size();
+	//Array should have 17 elements now
+	if(i != 17) {
+		cerr << "dynamic sizing did not work" << endl;
+		cerr << "Expected 17, size returned " << i << endl;
+	}
+
+	i = testArray->ACTUAL_SIZE();
+	//Low level array should have 20 elements
+	if(i != 20) {
+		cerr << "low level sizing did not work" << endl;
+		cerr << "Expected 20, size returned " << i << endl;
+	}
+
+	//Test Remove functions, remove 10 elements
+	for(int j = 0; j < 10; j++) {
+		testArray->Remove(testArray->Size()-1);
+	}
+
+	i = testArray->ACTUAL_SIZE();
+	//Low level array should have decreased back to size of 10
+	if(i != 10) {
+		cerr << "Remove method did not resize properly" << endl;
+		cerr << "Expected 10, actual size is " << i << endl;
+	}
+
+	i = testArray->Size();
+	//Array should only have 7 elements now
+	if(i != 7) {
+		cerr << "Improper size" << endl;
+		cerr << "Expected 7, size returned is " << i << endl;
+	}
+
+	//Test print method
+	cout << "Testing << operator format for array: ";
+	cout << "[" << *testArray << "]" << endl;
+
+	delete testArray;
+	//Demonstrate template ability
+	Tarray<Eclipse> *array2 = new Tarray<Eclipse>(3);
+
+	Eclipse *ec1 = new Eclipse("one");
+	Eclipse *ec2 = new Eclipse("two");
+
+	array2->Add(*ec1);
+	array2->Add(*ec1);
+	array2->AddCopy(*ec1);
+
+	ec1->SetName("yeah");
+	array2->Add(*ec2);
+
+	cout << *array2 << endl;
+	cout << *ec1 << endl;
+
+	cout << "Finished unit testing for array" << endl;
 }
