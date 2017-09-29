@@ -119,6 +119,8 @@ int main() {
 			eclipseID[idNum] = true;
 
 			//Add to eclipse array
+			//Eclipse *newEclipse = new Eclipse();
+			//newEclipse->SetParts(*columnStrings);
 			eclipses->Add(*columnStrings);
 		}
 
@@ -128,9 +130,9 @@ int main() {
 		}
 
 	} //END while loop
-
 	//Now, print out eclipses in reverse order
 	for(int i = eclipses->Size() - 1; i >= 0; i--) {
+		//Eclipse anEclipse = eclipses->Get(i);
 		Tarray<string> anEclipse = eclipses->Get(i);
 		//Print out each column in CSV format
 		cout << anEclipse << endl;

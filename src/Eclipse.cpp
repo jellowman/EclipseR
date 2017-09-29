@@ -24,13 +24,14 @@ Eclipse::Eclipse(string name) {
 Eclipse::Eclipse(const Eclipse& otherEclipse) {
 	name = new string;
 	this->name->assign(*otherEclipse.name);
-	this->parts = new Tarray<string>(otherEclipse.parts);
+	this->parts = otherEclipse.parts;
 	return;
 }
 
 //Equals assignment operator
 Eclipse& Eclipse::operator=(const Eclipse& otherEclipse) {
 	this->name = otherEclipse.name;
+	this->parts = otherEclipse.parts;
 	return *this;
 }
 void Eclipse::SetName(string newName) {
@@ -40,7 +41,8 @@ void Eclipse::SetName(string newName) {
 
 void Eclipse::SetParts(Tarray<string>& otherParts) {
 	delete this->parts;
-	*(this->parts) = otherParts;
+	*parts = otherParts;
+	return;
 }
 
 string Eclipse::GetName() {

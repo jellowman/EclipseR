@@ -27,7 +27,7 @@ public:
 	void RemoveDel(int index);
 	void RemoveAt(int index);
 	T Get(int i);
-	T& operator[](int i);
+	//T& operator[](int i);
 	void ReplaceAt(T& value, int index);
 	bool HasValue(int index);
 	int Size();
@@ -77,15 +77,16 @@ Tarray<T>::Tarray(int initSize) {
 	return;
 }
 
+
 //Clone constructor
 template<typename T>
 Tarray<T>::Tarray(const Tarray<T>& copyArray) {
-	this->nextOpenSlot = copyArray.nextOpenSlot;
-	this->currentSize = copyArray.currentSize;
-	this->array = new T[copyArray.currentSize];
+	nextOpenSlot = copyArray.nextOpenSlot;
+	currentSize = copyArray.currentSize;
+	array = new T[copyArray.currentSize];
 
 	for(int i = 0; i < this->nextOpenSlot; i++) {
-		this->array[i] = new T(copyArray.array[i]);
+		array[i] = copyArray.array[i];
 	}
 	return;
 }
@@ -259,11 +260,12 @@ T Tarray<T>::Get(int i) {
 		}
 }
 
+/*
 //Returns ADDRESS to T (Not tested)
 template<typename T>
 T& Tarray<T>::operator[] (int i) {
 	return array[i];
-}
+}*/
 
 //Set a value at an index in Tarray to T, DELETES OLD VALUE
 template<typename T>
