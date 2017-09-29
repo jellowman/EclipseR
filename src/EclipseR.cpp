@@ -16,7 +16,7 @@ using namespace std;
 
 int main() {
 	//Unit testing
-	TestArrayTemplate();
+	//TestArrayTemplate();
 
 	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
 	bool eclipseID[20000];
@@ -42,9 +42,9 @@ int main() {
 	}
 
 	//Loop through input file until the end of file is reached (Does not work properly, processing getline() never returns)
-	//while(getline(cin, nextLine)) { //Must CTRL+Z to end program
-	while(lineNum < 26) {
-		getline(cin, nextLine);
+	while(getline(cin, nextLine)) { //Must CTRL+Z to end program
+	//while(lineNum < 26) {
+		//getline(cin, nextLine);
 		lineNum++;
 		//string array to hold individual columns from file
 		Tarray<string> *columnStrings = new Tarray<string>();
@@ -133,10 +133,11 @@ int main() {
 	for(int i = eclipses->Size() - 1; i >= 0; i--) {
 		Tarray<string> anEclipse = eclipses->Get(i);
 		//Print out each column in CSV format
-		for(int j = 0; j < anEclipse.Size()-1; j++) {
+		cout << anEclipse << endl;
+		/*for(int j = 0; j < anEclipse.Size()-1; j++) {
 			cout << anEclipse.Get(j) << ",";
 		}
-		cout << anEclipse.Get(anEclipse.Size()-1) << endl;
+		cout << anEclipse.Get(anEclipse.Size()-1) << endl;*/
 	}
 
 	return 0;
@@ -229,6 +230,7 @@ bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int line
 	return isBad;
 }
 
+//UNIT TESTING for Tarray template
 void TestArrayTemplate() {
 
 	//Test on primitive data type
@@ -284,7 +286,7 @@ void TestArrayTemplate() {
 
 	//Test Remove functions, remove 10 elements
 	for(int j = 0; j < 10; j++) {
-		testArray->Remove(testArray->Size()-1);
+		testArray->RemoveAt(testArray->Size()-1);
 	}
 
 	i = testArray->ACTUAL_SIZE();

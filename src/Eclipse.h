@@ -9,6 +9,7 @@
 #define ECLIPSE_H_
 
 #include <string>
+#include "Tarray.h"
 using namespace std;
 
 class Eclipse {
@@ -20,8 +21,11 @@ public:
 	Eclipse& operator=(const Eclipse& otherEcl);
 	string GetName();
 	void SetName(string newName);
+	void SetParts(Tarray<string>& otherParts);
 private:
 	string* name;
+	Tarray<string>* parts;
+
 };
 
 

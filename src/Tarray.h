@@ -18,16 +18,17 @@ class Tarray {
 public:
 	Tarray();
 	Tarray(int initSize);
-	//Tarray(const Tarray<T>& copyArray);
+	Tarray(const Tarray<T>& copyArray);
 	~Tarray();
 	Tarray<T>& operator=(const Tarray<T>& otherArray);
 	void Add(T& newT);
 	void AddCopy(T newT);
+	void AddAt(T& newT, int index);
 	void RemoveDel(int index);
-	void Remove(int index);
+	void RemoveAt(int index);
 	T Get(int i);
 	T& operator[](int i);
-	void Set(int i, T& value);
+	void ReplaceAt(T& value, int index);
 	bool HasValue(int index);
 	int Size();
 	int ACTUAL_SIZE();
@@ -77,7 +78,7 @@ Tarray<T>::Tarray(int initSize) {
 }
 
 //Clone constructor
-/*template<typename T>
+template<typename T>
 Tarray<T>::Tarray(const Tarray<T>& copyArray) {
 	this->nextOpenSlot = copyArray.nextOpenSlot;
 	this->currentSize = copyArray.currentSize;
@@ -87,7 +88,7 @@ Tarray<T>::Tarray(const Tarray<T>& copyArray) {
 		this->array[i] = new T(copyArray.array[i]);
 	}
 	return;
-}*/
+}
 
 //Copy overloader to deep copy
 template<typename T>
@@ -98,7 +99,7 @@ Tarray<T>& Tarray<T>::operator=(const Tarray<T>& otherArray) {
 	for(int i = 0; i < otherArray.nextOpenSlot; i++) {
 		array[i] = otherArray.array[i];
 	}
-	*array = *(otherArray.array);
+	//*array = *(otherArray.array);
 	currentSize = otherArray.currentSize;
 	nextOpenSlot = otherArray.nextOpenSlot;
 	return *this;
@@ -156,6 +157,41 @@ void Tarray<T>::AddCopy(T newT) {
 	return;
 }
 
+template<typename T>
+void Tarray<T>::AddAt(T& newT, int index) {
+	if(nextOpenSlot < currentSize) {
+			//Push elements at index forward
+			for (int i = nextOpenSlot; i > index; i--) {
+				array[i] = array[i-1];
+			}
+			array[index] = newT;
+			nextOpenSlot++;
+		} else {
+			T *newArray = new T[currentSize*2];// = new T[currentSize*2];
+			for(int i = 0; i < currentSize; i++) {
+				newArray[i] = array[i];
+				//cout << "Copying: " << array[i] << endl;
+			}
+			//for(int i = currentSize; i < currentSize * 2; i++) {
+			//	*newArray[i] = NULL;
+			//}
+			//cout << "Before copy: " << array[1] << endl;
+			//delete [] array;
+			array = newArray;
+			//cout << "After copy: " << array[1] << endl;
+
+			currentSize = currentSize*2;
+
+			//Push elements at index forward
+			for (int i = nextOpenSlot; i > index; i--) {
+				array[i] = array[i-1];
+			}
+			array[index] = newT;
+			nextOpenSlot++;
+		}
+		return;
+}
+
 //Removes an object from specified index and deletes it
 template<typename T>
 void Tarray<T>::RemoveDel(int index) {
@@ -186,7 +222,7 @@ void Tarray<T>::RemoveDel(int index) {
 
 //Removes an object from specified index
 template<typename T>
-void Tarray<T>::Remove(int index) {
+void Tarray<T>::RemoveAt(int index) {
 	if(index < nextOpenSlot) {
 		//Move pointers, so object is not deleted, but not pointed to in this array
 		for(int i = index; i < nextOpenSlot - 1; i++) {
@@ -229,15 +265,16 @@ T& Tarray<T>::operator[] (int i) {
 	return array[i];
 }
 
-//Set a value at an index in Tarray to T
+//Set a value at an index in Tarray to T, DELETES OLD VALUE
 template<typename T>
-void Tarray<T>::Set(int i, T& value) {
-	if(i >= nextOpenSlot) {
-		cerr << "INVALID SET RANGE: Size specified: " << i << ". Max size: "
+void Tarray<T>::ReplaceAt(T& value, int index) {
+	if(index >= nextOpenSlot) {
+		cerr << "INVALID SET RANGE: Size specified: " << index << ". Max size: "
 						<< nextOpenSlot-1 << endl;
 		return;
 	} else {
-	array[i] = value;
+	delete array[index];
+	array[index] = value;
 	return;
 	}
 }
