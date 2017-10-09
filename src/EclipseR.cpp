@@ -16,7 +16,7 @@ using namespace std;
 
 int main() {
 	//Unit testing
-	//TestArrayTemplate();
+	TestArrayTemplate();
 
 	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
 	bool eclipseID[20000];
@@ -28,7 +28,7 @@ int main() {
 	}
 
 	//Keep track of eclipses (just a string array of strings for now)
-	Tarray<Tarray<string> > *eclipses = new Tarray<Tarray<string> >(10);
+	Tarray<Eclipse> *eclipses = new Tarray<Eclipse>(10);
 
 	//Variable used to hold next line from the eclipse data text file
 	string nextLine;
@@ -42,9 +42,9 @@ int main() {
 	}
 
 	//Loop through input file until the end of file is reached (Does not work properly, processing getline() never returns)
-	while(getline(cin, nextLine)) { //Must CTRL+Z to end program
-	//while(lineNum < 26) {
-		//getline(cin, nextLine);
+	//while(getline(cin, nextLine)) { //Must CTRL+Z to end program
+	while(lineNum < 26) {
+		getline(cin, nextLine);
 		lineNum++;
 		//string array to hold individual columns from file
 		Tarray<string> *columnStrings = new Tarray<string>();
@@ -119,9 +119,9 @@ int main() {
 			eclipseID[idNum] = true;
 
 			//Add to eclipse array
-			//Eclipse *newEclipse = new Eclipse();
-			//newEclipse->SetParts(*columnStrings);
-			eclipses->Add(*columnStrings);
+			Eclipse *newEclipse = new Eclipse();
+			newEclipse->SetParts(*columnStrings);
+			eclipses->Add(*newEclipse);
 		}
 
 		if(!cin.good()) //DOES NOT WORK, attempt to break out if end of file is reached
@@ -132,8 +132,8 @@ int main() {
 	} //END while loop
 	//Now, print out eclipses in reverse order
 	for(int i = eclipses->Size() - 1; i >= 0; i--) {
-		//Eclipse anEclipse = eclipses->Get(i);
-		Tarray<string> anEclipse = eclipses->Get(i);
+		Eclipse anEclipse = eclipses->Get(i);
+		//Tarray<string> anEclipse = eclipses->Get(i);
 		//Print out each column in CSV format
 		cout << anEclipse << endl;
 		/*for(int j = 0; j < anEclipse.Size()-1; j++) {
@@ -323,8 +323,11 @@ void TestArrayTemplate() {
 	ec1->SetName("yeah");
 	array2->Add(*ec2);
 
-	cout << *array2 << endl;
-	cout << *ec1 << endl;
+	cout << (array2->Get(0)).GetName() << endl;
+	cout << (array2->Get(1)).GetName() << endl;
+	cout << (array2->Get(2)).GetName() << endl;
+	cout << (array2->Get(3)).GetName() << endl;
+	cout << ec1->GetName() << endl;
 
 	cout << "Finished unit testing for array" << endl;
 }

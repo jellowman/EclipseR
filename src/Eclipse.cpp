@@ -23,8 +23,8 @@ Eclipse::Eclipse(string name) {
 //Copy constructor
 Eclipse::Eclipse(const Eclipse& otherEclipse) {
 	name = new string;
-	this->name->assign(*otherEclipse.name);
-	this->parts = otherEclipse.parts;
+	(*name).assign(*otherEclipse.name);
+	parts = new Tarray<string>(*(otherEclipse.parts));
 	return;
 }
 
@@ -39,9 +39,9 @@ void Eclipse::SetName(string newName) {
 	name = new string(newName);
 }
 
-void Eclipse::SetParts(Tarray<string>& otherParts) {
+void Eclipse::SetParts(const Tarray<string>& otherParts) {
 	delete this->parts;
-	*parts = otherParts;
+	parts = new Tarray<string>(otherParts);
 	return;
 }
 
@@ -49,7 +49,7 @@ string Eclipse::GetName() {
 	return *name;
 }
 
-std::ostream& operator << (ostream& os, Eclipse& theEclipse) {
+std::ostream& operator << (ostream& os, const Eclipse& theEclipse) {
 	os << *(theEclipse.parts);
 	return os;
 }

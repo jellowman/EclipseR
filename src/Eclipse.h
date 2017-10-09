@@ -13,7 +13,6 @@
 using namespace std;
 
 class Eclipse {
-	friend ostream& operator << (ostream& os, Eclipse& theEclipse);
 public:
 	Eclipse();
 	Eclipse(string name);
@@ -21,7 +20,8 @@ public:
 	Eclipse& operator=(const Eclipse& otherEcl);
 	string GetName();
 	void SetName(string newName);
-	void SetParts(Tarray<string>& otherParts);
+	void SetParts(const Tarray<string>& otherParts);
+	friend ostream& operator << (ostream& os, const Eclipse& theEclipse);
 private:
 	string* name;
 	Tarray<string>* parts;
