@@ -13,8 +13,11 @@ int main();
 //Reads from a file specified by inFS and parses data into eclipseArray
 bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipseArray, bool eclipseID[]);
 
-//Prints values
-void PrintValues(Tarray<Eclipse>* eclipses);
+//Output values to a file
+void OutputValues(Tarray<Eclipse>* eclipses);
+
+//Sort values
+void SortValues(Tarray<Eclipse>* eclipses);
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.

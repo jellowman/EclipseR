@@ -285,7 +285,7 @@ void Tarray<T>::replaceAt(T& value, int index) {
 
 template<typename T>
 void Tarray<T>::swap(int p1, int p2) {
-	T *temp = &(array[p1]);
+	T *temp = new T(array[p1]);
 	array[p1] = array[p2];
 	array[p2] = *temp;
 }

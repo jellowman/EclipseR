@@ -52,6 +52,8 @@ int main() {
 					anyData = true;
 				}
 			}
+
+			inFS.close();
 		} else { //Exit loop
 			exit = true;
 		}
@@ -73,12 +75,12 @@ int main() {
 		case 'o':
 		case 'O':
 			//Output data
-				//TODO
+			OutputValues(eclipses);
 			break;
 		case 's':
 		case 'S':
 			//Sort data
-				//TODO
+			SortValues(eclipses);
 			break;
 		case 'f':
 		case 'F':
@@ -220,20 +222,45 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 	return hasData;
 } //END ReadFile method
 
-void PrintValues(Tarray<Eclipse>* eclipses) {
-	//Now, print out eclipses in reverse order
-	for(int i = eclipses->size() - 1; i >= 0; i--) {
-		Eclipse anEclipse = eclipses->get(i);
-		//Tarray<string> anEclipse = eclipses->Get(i);
-		//Print out each column in CSV format
-		cout << anEclipse << endl;
-		/*for(int j = 0; j < anEclipse.Size()-1; j++) {
-			cout << anEclipse.Get(j) << ",";
+void OutputValues(Tarray<Eclipse>* eclipses) {
+	cout << "Enter the name of the output file:" << endl;
+	string outFileName;
+	getline(cin, outFileName);
+	if(!outFileName.empty()) {
+		ofstream outFile;
+		outFile.open(outFileName);
+		if(!outFile.is_open()) {
+			cerr << "File is not available." << endl;
+			return;
 		}
-		cout << anEclipse.Get(anEclipse.Size()-1) << endl;*/
+		//Now, print out eclipses
+		for(int i = 0; i < eclipses->size(); i++) {
+			Eclipse anEclipse = eclipses->get(i);
+			outFile << anEclipse << endl;
+		}
+		outFile.close();
+	} else {
+		//Now, print out eclipses
+		for(int i = 0; i < eclipses->size(); i++) {
+			Eclipse anEclipse = eclipses->get(i);
+			cout << anEclipse << endl;
+		}
 	}
 
-} //END PrintValues method
+} //END OutputValues method
+
+void SortValues(Tarray<Eclipse>* eclipses) {
+
+	cout << "Select a data field to sort from 1-18" << endl;
+	string nextLine;
+	getline(cin, nextLine);
+	try{
+		int colNum = stoi(nextLine);
+		ColumnSort(*eclipses, colNum-1);
+	} catch(invalid_argument ar) {
+
+	}
+}
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.
