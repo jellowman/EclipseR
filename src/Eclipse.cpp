@@ -180,7 +180,7 @@ std::ostream& operator << (ostream& os, const Eclipse& theEclipse) {
 	os << setw(10) << theEclipse.parts->get(10) << setw(8) << theEclipse.parts->get(11);
 	os << setw(7) << theEclipse.parts->get(12) << setw(7) << theEclipse.parts->get(13);
 	os << setw(4) << theEclipse.parts->get(14) << setw(5) << theEclipse.parts->get(15);
-	if(theEclipse.parts->get(9) != "P") {
+	if(theEclipse.parts->get(9).at(0) != 'P') {
 		os << setw(5) << theEclipse.parts->get(16) << setw(8) << theEclipse.parts->get(17);
 	}
 

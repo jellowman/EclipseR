@@ -139,7 +139,7 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 				cerr << "Error in data row " << lineNum << ": " << numCols <<
 						" columns found. Should be 16." << endl;
 				isBad = true;
-				//continue;
+				continue;
 			}
 		} else {
 			//Set eclipse type to 'other'
@@ -148,7 +148,7 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 				cerr << "Error in data row " << lineNum << ": " << numCols <<
 						" columns found. Should be 18." << endl;
 				isBad = true;
-				//continue;
+				continue;
 			}
 		}
 
