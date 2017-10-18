@@ -64,6 +64,7 @@ int main() {
 	}
 
 	//Enter data manipulation loop
+	int sortedBy = -1;
 	exit = false;
 	do {
 		cout << "Choose to (O)utput, (S)ort, (F)ind, or (Q)uit" << endl;
@@ -80,12 +81,12 @@ int main() {
 		case 's':
 		case 'S':
 			//Sort data
-			SortValues(eclipses);
+			SortValues(eclipses, sortedBy);
 			break;
 		case 'f':
 		case 'F':
 			//Find data
-				//TODO
+			FindValues(eclipses, sortedBy);
 			break;
 		case 'q':
 		case 'Q':
@@ -249,7 +250,7 @@ void OutputValues(Tarray<Eclipse>* eclipses) {
 
 } //END OutputValues method
 
-void SortValues(Tarray<Eclipse>* eclipses) {
+void SortValues(Tarray<Eclipse>* eclipses, int& sortBy) {
 
 	cout << "Select a data field to sort from 1-18" << endl;
 	string nextLine;
@@ -257,6 +258,31 @@ void SortValues(Tarray<Eclipse>* eclipses) {
 	try{
 		int colNum = stoi(nextLine);
 		ColumnSort(*eclipses, colNum-1);
+		sortBy = colNum;
+	} catch(invalid_argument ar) {
+
+	}
+}
+
+void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy) {
+
+	cout<< "Select a data field to find from 1-18" << endl;
+	string nextLine;
+	string searchTerm;
+	getline(cin, nextLine);
+	try{
+		int min = -1;
+		int max = -1;
+		Tarray<int>* matches = new Tarray<int>();
+		int colNum = stoi(nextLine);
+		cout << "Pick a value to search for." << endl;
+		getline(cin, searchTerm);
+
+		if(colNum == sortedBy) {
+			ColumnSearchBinary(*eclipses, searchTerm, colNum-1, min, max);
+		} else {
+			ColumnSearch(*eclipses, searchTerm, colNum-1, *matches);
+		}
 	} catch(invalid_argument ar) {
 
 	}

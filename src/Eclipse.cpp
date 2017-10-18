@@ -151,9 +151,6 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 		break;
 	//17 not in P type, check string
 	case 17:
-		cout << *this << " and " << otherEclipse << endl;
-		cout << this->getCol(9).at(0) << endl;
-		cout << otherEclipse.getCol(9).at(0) << endl;
 		if((this->getCol(9).at(0) != 'P') && (otherEclipse.getCol(9).at(0) == 'P')) {
 			return -1;
 		} else if((this->getCol(9).at(0) == 'P') && (otherEclipse.getCol(9).at(0) != 'P')) {
@@ -223,7 +220,7 @@ void ColumnSort(Tarray<Eclipse>& eclipses, int colNum) {
 			min = compareVal;
 			compareVal = (max+compareVal)/2;
 		}
-		cout << "Max is: " << max << " | Min is: " << min << endl;
+		//cout << "Max is: " << max << " | Min is: " << min << endl;
 		} while((max-min) > 1);
 		comparison = eclipses.get(i).compareTo(eclipses.get(compareVal), colNum);
 		if(compareVal == min) {
@@ -231,7 +228,7 @@ void ColumnSort(Tarray<Eclipse>& eclipses, int colNum) {
 		} else if(compareVal == max) {
 			insertAt = (comparison <= 0) ? compareVal-1 : compareVal;
 		}
-		cout << "inserting at: " << insertAt << endl;
+		//cout << "inserting at: " << insertAt << endl;
 
 		//Move elements
 		Eclipse *temp = new Eclipse();
@@ -242,4 +239,72 @@ void ColumnSort(Tarray<Eclipse>& eclipses, int colNum) {
 		eclipses.replaceAt(*temp, insertAt);
 		temp = 0;
 	} //End Loop for element
+}
+
+//Search by binary
+void ColumnSearchBinary(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, int& min, int& max) {
+	int lmin; int lmax; int lmid;
+	if(colNum > 15) {
+
+	} else {
+		lmin = 0; lmax = eclipses.size(); lmid = (lmin+lmax)/2;
+		//Search for min value
+		while((min == -1) && (lmin-lmax >= 1)) {
+			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
+				if(lmid == 0) {
+					min = 0;
+				} else if (eclipses.get(lmid-1).getCol(colNum).compare(searchTerm) != 0) {
+					min = lmid;
+				} else {
+					lmax = lmid;
+					lmid = (lmin+lmax)/2;
+				}
+			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
+				lmax = lmid-1;
+				lmid = (lmin+lmax)/2;
+			} else {
+				lmin = lmid + 1;
+				lmid = (lmin+lmax)/2;
+			}
+		}
+		lmin = min; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+		//Search for max val
+		while((max == -1) && (lmin-lmax >= 1)) {
+			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
+				if(lmid == eclipses.size()-1) {
+					max = lmax;
+				} else if (eclipses.get(lmid+1).getCol(colNum).compare(searchTerm) != 0) {
+					max = lmax;
+				} else {
+					lmin = lmid;
+					lmid = (lmin+lmax)/2;
+				}
+			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
+				lmax = lmid-1;
+				lmid = (lmin+lmax)/2;
+			} else {
+				lmin = lmid+1;
+				lmid = (lmin+lmax)/2;
+			}
+		}
+	}
+}
+
+//Search Linearly
+void ColumnSearch(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, Tarray<int>& matches) {
+	if(colNum > 15) {
+		for(int i = 0; i < eclipses.size(); i++) {
+			if(eclipses.get(i).getCol(9).at(0) == 'P') {
+
+			} else if (eclipses.get(i).getCol(colNum).compare(searchTerm) == 0) {
+				matches.add(i);
+			}
+		}
+	} else {
+		for(int i = 0; i < eclipses.size(); i++) {
+			if(eclipses.get(i).getCol(colNum).compare(searchTerm) == 0) {
+				matches.add(i);
+			}
+		}
+	}
 }

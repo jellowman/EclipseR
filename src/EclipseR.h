@@ -17,7 +17,10 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipseArray, bool eclipseID[]);
 void OutputValues(Tarray<Eclipse>* eclipses);
 
 //Sort values
-void SortValues(Tarray<Eclipse>* eclipses);
+void SortValues(Tarray<Eclipse>* eclipses, int& sortBy);
+
+//Find values
+void FindValues(Tarray<Eclipse>* eclipses, int& sortBy);
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.

@@ -36,4 +36,7 @@ private:
 
 void ColumnSort(Tarray<Eclipse>& eclipses, int colNum);
 
+void ColumnSearchBinary(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, int& min, int& max);
+void ColumnSearch(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, Tarray<int>& matches);
+
 #endif /* ECLIPSE_H_ */
