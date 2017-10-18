@@ -151,7 +151,6 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 				continue;
 			}
 		}
-
 		//Test to see if Integer columns have integers
 		switch(eclipseType) {
 		case 1:

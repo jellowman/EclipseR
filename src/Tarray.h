@@ -26,7 +26,7 @@ public:
 	void addAt(T& newT, int index);
 	void removeDel(int index);
 	void removeAt(int index);
-	T get(int i);
+	T& get(int i);
 	//T& operator[](int i);
 	void replaceAt(T& value, int index);
 	void swap(int p1, int p2);
@@ -252,7 +252,7 @@ void Tarray<T>::removeAt(int index) {
 
 //Returns OBJECT T
 template<typename T>
-T Tarray<T>::get(int i) {
+T& Tarray<T>::get(int i) {
 	if(i >= nextOpenSlot) {
 			cerr << "INVALID ACCESS RANGE: Size specified: " << i << ". Max size: "
 							<< nextOpenSlot-1 << endl;
@@ -285,7 +285,8 @@ void Tarray<T>::replaceAt(T& value, int index) {
 
 template<typename T>
 void Tarray<T>::swap(int p1, int p2) {
-	T *temp = new T(array[p1]);
+	T *temp;
+	temp = array[p1];
 	array[p1] = array[p2];
 	array[p2] = *temp;
 }

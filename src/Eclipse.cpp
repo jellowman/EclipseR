@@ -37,8 +37,8 @@ Eclipse::Eclipse(const Eclipse& otherEclipse) {
 
 //Equals assignment operator
 Eclipse& Eclipse::operator=(const Eclipse& otherEclipse) {
-	delete name;
-	delete parts;
+	//delete name;
+	//delete parts;
 	this->name = otherEclipse.name;
 	this->parts = otherEclipse.parts;
 	return *this;
@@ -110,10 +110,14 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 	case 8:
 	case 14:
 	case 15:
+		try {
 		diff = stoi(this->getCol(numCol));
 		diff = diff - stoi(otherEclipse.getCol(numCol));
-		cout << "Difference is:" << diff << endl;
 		return diff;
+		} catch (invalid_argument ar) {
+			cerr << "Error converting integers:" << this->getCol(numCol) << " and " << otherEclipse.getCol(numCol) << endl;
+			return 0;
+		}
 		break;
 	//Look at double cases
 	case 10:
@@ -133,11 +137,11 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 		break;
 	//16 not in P type, check int
 	case 16:
-		if((this->getCol(9) != "P") && (otherEclipse.getCol(9) == "P")) {
+		if((this->getCol(9).at(0) != 'P') && (otherEclipse.getCol(9).at(0) == 'P')) {
 			return -1;
-		} else if((this->getCol(9) == "P") && (otherEclipse.getCol(9) != "P")) {
+		} else if((this->getCol(9).at(0) == 'P') && (otherEclipse.getCol(9).at(0) != 'P')) {
 			return 1;
-		} else if((this->getCol(9) == "P") && (otherEclipse.getCol(9) == "P")) {
+		} else if((this->getCol(9).at(0) == 'P') && (otherEclipse.getCol(9).at(0) == 'P')) {
 			return 0;
 		} else {
 			diff = stoi(this->getCol(numCol));
@@ -147,11 +151,14 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 		break;
 	//17 not in P type, check string
 	case 17:
-		if((this->getCol(9) != "P") && (otherEclipse.getCol(9) == "P")) {
+		cout << *this << " and " << otherEclipse << endl;
+		cout << this->getCol(9).at(0) << endl;
+		cout << otherEclipse.getCol(9).at(0) << endl;
+		if((this->getCol(9).at(0) != 'P') && (otherEclipse.getCol(9).at(0) == 'P')) {
 			return -1;
-		} else if((this->getCol(9) == "P") && (otherEclipse.getCol(9) != "P")) {
+		} else if((this->getCol(9).at(0) == 'P') && (otherEclipse.getCol(9).at(0) != 'P')) {
 			return 1;
-		} else if((this->getCol(9) == "P") && (otherEclipse.getCol(9) == "P")) {
+		} else if((this->getCol(9).at(0) == 'P') && (otherEclipse.getCol(9).at(0) == 'P')) {
 			return 0;
 		} else {
 			return this->getCol(numCol).compare(otherEclipse.getCol(numCol));
@@ -200,35 +207,39 @@ void ColumnSort(Tarray<Eclipse>& eclipses, int colNum) {
 		do {
 		comparison = eclipses.get(i).compareTo(eclipses.get(compareVal), colNum);
 		if (comparison == 0) {
-			cout << eclipses.get(i) << "is equal to" << eclipses.get(compareVal) << endl;
+			//cout << eclipses.get(i) << "} is equal to{" << eclipses.get(compareVal) << endl;
 			insertAt = compareVal;
 			break;
 		}
 		else if(comparison < 0) {
 			//Reduce to left half, min stays same
-			cout << eclipses.get(i) << "is less than" << eclipses.get(compareVal) << endl;
+			//cout << eclipses.get(i) << "} is less than{" << eclipses.get(compareVal).getCol(colNum) << endl;
 			max = compareVal;
 			compareVal = (compareVal+min)/2;
 
 		} else {
 			//Reduce to right half, max stays same
-			cout << eclipses.get(i) << "is greater than" << eclipses.get(compareVal) << endl;
+			//cout << eclipses.get(i) << "} is greater than{" << eclipses.get(compareVal) << endl;
 			min = compareVal;
 			compareVal = (max+compareVal)/2;
 		}
-		cout << "Max is: " << max << "| Min is: " << min << endl;
+		cout << "Max is: " << max << " | Min is: " << min << endl;
 		} while((max-min) > 1);
 		comparison = eclipses.get(i).compareTo(eclipses.get(compareVal), colNum);
 		if(compareVal == min) {
 			insertAt = (comparison <= 0) ? compareVal : compareVal+1;
-		} else {
+		} else if(compareVal == max) {
 			insertAt = (comparison <= 0) ? compareVal-1 : compareVal;
 		}
-		cout << insertAt << endl;
+		cout << "inserting at: " << insertAt << endl;
 
 		//Move elements
+		Eclipse *temp = new Eclipse();
+		*temp = eclipses.get(i);
 		for(int j = i; j > insertAt; j--) {
-			eclipses.swap(j-1, j);
+			eclipses.replaceAt(eclipses.get(j-1), j);
 		}
+		eclipses.replaceAt(*temp, insertAt);
+		temp = 0;
 	} //End Loop for element
 }
