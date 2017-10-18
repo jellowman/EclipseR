@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
 #include "EclipseR.h"
 #include "Tarray.h"
 #include "Eclipse.h"
@@ -16,7 +17,7 @@ using namespace std;
 
 int main() {
 	//Unit testing
-	TestArrayTemplate();
+	//TestArrayTemplate();
 
 	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
 	bool eclipseID[20000];
@@ -27,9 +28,80 @@ int main() {
 		eclipseID[i] = false;
 	}
 
-	//Keep track of eclipses (just a string array of strings for now)
+	//Keep track of eclipses (Array of Eclispes)
 	Tarray<Eclipse> *eclipses = new Tarray<Eclipse>(10);
 
+	//Enter data input loop
+	bool anyData = false;
+	bool exit = false;
+	do {
+		cout << "Enter the name of an eclipse data file." << endl;
+		string fileName;
+		getline(cin, fileName);
+
+		if(!fileName.empty()) {
+			ifstream inFS;
+			inFS.open(fileName);
+			if(!inFS.is_open()) {
+				cout << "File is not available." << endl;
+			} else {
+				//Read file contents
+				bool hasData = ReadFile(inFS, eclipses, eclipseID);
+				//Data has been read at least once
+				if(hasData) {
+					anyData = true;
+				}
+			}
+		} else { //Exit loop
+			exit = true;
+		}
+	} while (!exit);
+
+	if(!anyData) {
+		return 0;
+	}
+
+	//Enter data manipulation loop
+	exit = false;
+	do {
+		cout << "Choose to (O)utput, (S)ort, (F)ind, or (Q)uit" << endl;
+		string userChoice;
+		getline(cin, userChoice);
+		char firstLetter = userChoice[0];
+
+		switch (firstLetter) {
+		case 'o':
+		case 'O':
+			//Output data
+				//TODO
+			break;
+		case 's':
+		case 'S':
+			//Sort data
+				//TODO
+			break;
+		case 'f':
+		case 'F':
+			//Find data
+				//TODO
+			break;
+		case 'q':
+		case 'Q':
+			//Quit Program
+			exit = true;
+			break;
+		default:
+			cout << "Invalid action, please enter O, S, F, or Q." << endl;
+			break;
+		}
+	} while (!exit);
+
+	//END PROGRAM
+}
+
+bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
+
+	//bool eclipseID[20000];
 	//Variable used to hold next line from the eclipse data text file
 	string nextLine;
 	//Keeps track of the line number from input file, not including header lines
@@ -37,14 +109,13 @@ int main() {
 
 	//Read past the "junk lines" at the beginning of the file
 	for(int i = 0; i < 10; i++) {
-		getline(cin, nextLine);
-		//lineNum++;
+		getline(inFS, nextLine);
 	}
 
-	//Loop through input file until the end of file is reached (Does not work properly, processing getline() never returns)
-	//while(getline(cin, nextLine)) { //Must CTRL+Z to end program
-	while(lineNum < 26) {
-		getline(cin, nextLine);
+	//Loop through input file until the end of file is reached
+	while(getline(inFS, nextLine)) {
+	//while(lineNum < 26) {
+		//getline(inFS, nextLine);
 		lineNum++;
 		//string array to hold individual columns from file
 		Tarray<string> *columnStrings = new Tarray<string>();
@@ -54,17 +125,18 @@ int main() {
 
 		//Begin error checking content of lines
 		//Hold type of eclipse
+		bool isBad = false;
 		int eclipseType = -1;
 
 		//Check for correct # of columns based on eclipse type
-		if ((columnStrings->Get(9)).at(0) == 'P') {
+		if ((columnStrings->get(9)).at(0) == 'P') {
 			//Set eclipse to partial type
 			eclipseType = 0;
 			if(numCols != 16) {
 				cerr << "Error in data row " << lineNum << ": " << numCols <<
 						" columns found. Should be 16." << endl;
-				//Move to next line
-				continue;
+				isBad = true;
+				//continue;
 			}
 		} else {
 			//Set eclipse type to 'other'
@@ -72,17 +144,16 @@ int main() {
 			if(numCols != 18) {
 				cerr << "Error in data row " << lineNum << ": " << numCols <<
 						" columns found. Should be 18." << endl;
-				//Move to next line
-				continue;
+				isBad = true;
+				//continue;
 			}
 		}
 
 		//Test to see if Integer columns have integers
-		bool isBad = false;
 		switch(eclipseType) {
 		case 1:
 			//Check if column 17 is integer
-			isBad = IsColumnNumber(columnStrings, 17, true, lineNum);
+			isBad = IsColumnNumber(columnStrings, 17, true, lineNum) || isBad;
 			//intentionally no break
 		case 0:
 			//Check if columns 1,2,3,5,7,8,9,15,and 16 are Integers
@@ -110,29 +181,49 @@ int main() {
 
 		//Check for unique catalog number
 		int idNum = 0;
-		idNum = stoi(columnStrings->Get(0));
-		if(eclipseID[idNum] == true) { //true means it's a duplicate ID
+		idNum = stoi(columnStrings->get(0));
+		//Iterate through eclipses to compare idNums
+		bool uniqueID = true;
+		int indexOfDuplicate = 0;
+		for(int i = 0; i < eclipses->size(); i++) {
+			if(idNum == eclipses->get(i).getID()) {
+				uniqueID = false;
+				indexOfDuplicate = i;
+			}
+		}
+		if(!uniqueID) { //Duplicate ID found, replace
 			cerr << "Error in data row " << lineNum << ": Duplicate catalog number "
 					<< idNum << "." << endl;
+
+			Eclipse *newEclipse = new Eclipse();
+			newEclipse->setParts(*columnStrings);
+			eclipses->replaceAt(*newEclipse, indexOfDuplicate);
 		} else {
 			//Indicate an ID has been used
-			eclipseID[idNum] = true;
+			//eclipseID[idNum] = true;
 
 			//Add to eclipse array
 			Eclipse *newEclipse = new Eclipse();
-			newEclipse->SetParts(*columnStrings);
-			eclipses->Add(*newEclipse);
+			newEclipse->setParts(*columnStrings);
+			eclipses->add(*newEclipse);
 		}
 
-		if(!cin.good()) //DOES NOT WORK, attempt to break out if end of file is reached
+		if(!inFS.good()) //DOES NOT WORK, attempt to break out if end of file is reached
 		{
+			cerr << "Standard input not good" << endl;
 			break;
 		}
 
 	} //END while loop
+
+	bool hasData = (eclipses->size() > 0) ? true : false;
+	return hasData;
+} //END ReadFile method
+
+void PrintValues(Tarray<Eclipse>* eclipses) {
 	//Now, print out eclipses in reverse order
-	for(int i = eclipses->Size() - 1; i >= 0; i--) {
-		Eclipse anEclipse = eclipses->Get(i);
+	for(int i = eclipses->size() - 1; i >= 0; i--) {
+		Eclipse anEclipse = eclipses->get(i);
 		//Tarray<string> anEclipse = eclipses->Get(i);
 		//Print out each column in CSV format
 		cout << anEclipse << endl;
@@ -142,9 +233,7 @@ int main() {
 		cout << anEclipse.Get(anEclipse.Size()-1) << endl;*/
 	}
 
-	return 0;
-
-} //END main() method
+} //END PrintValues method
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.
@@ -171,7 +260,7 @@ int ColumnSplitter(Tarray<string> *columnStrings, const string nextLine) {
 				partEnd = i-1;
 				//Writes the characters from the eclipse file that correspond to the next column
 				columnPos += 1;
-				columnStrings->AddCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
+				columnStrings->addCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
 
 				//Indicate that the column characters are done being read, prepare for next column
 				isWriting = false;
@@ -195,38 +284,59 @@ int ColumnSplitter(Tarray<string> *columnStrings, const string nextLine) {
 	if(isWriting) {
 		partEnd = nextLine.size()-1;
 		columnPos += 1;
-		columnStrings->AddCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
+		columnStrings->addCopy(nextLine.substr(partStart, (partEnd-partStart+1)));
 	}
-	/*if(columnPos+1 != columnStrings->Size())
-	{
-		cerr << "OH NO" << endl;
-	}*/
+
 	return columnPos+1; //Return number of columns as 1-indexed
 } //END Function ColumnSplitter()
 
 //Checks to see if column entry is numeric, returns true if bad formatting
 bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int lineNum) {
 	bool isBad = false;
+	int i = 0;
+
 	if(isInt) { //Checking for integer
 		//Iterate through string
-		for(char c : colStrings->Get(column-1)) {
-			if(!isdigit(c) && (c != '-')) {
-				isBad = true;
-				cerr << "Error in data row " << lineNum << ": Column " << column << " is not a whole number." << endl;
-				break;
+		for(char c : colStrings->get(column-1)) {
+			if(i == 0) {
+				if(!isdigit(c) && (c != '-')) {
+					isBad = true;
+					cerr << "Error in data row " << lineNum << ": Column " << column << " is not a whole number." << endl;
+					break;
+				}
+			} else {
+				if(!isdigit(c)) {
+					isBad = true;
+					cerr << "Error in data row " << lineNum << ": Column " << column << " is not a whole number." << endl;
+					break;
+				}
 			}
+			i++;
 		}
 	} else { //Checking for double-formatted number
 		int numDecimals = 0;
 		//Iterate through string
-		for(char c : colStrings->Get(column-1)) {
-			if(c == '.')
-				numDecimals++;
-			if((!isdigit(c) && (c != '.') && (c != '-')) || numDecimals > 1) {
-				isBad = true;
-				cerr << "Error in data row " << lineNum << ": Column " << column << " is not a decimal number." << endl;
-				break;
+		for(char c : colStrings->get(column-1)) {
+
+			if(i == 0) {
+				if(c == '.')
+					numDecimals++;
+				if((!isdigit(c) && (c != '.') && (c != '-')) || numDecimals > 1) {
+					isBad = true;
+					cerr << "Error in data row " << lineNum << ": Column " << column << " is not a decimal number." << endl;
+					break;
+				}
 			}
+			else {
+				if(c == '.')
+					numDecimals++;
+				if((!isdigit(c) && (c != '.')) || numDecimals > 1) {
+					isBad = true;
+					cerr << "Error in data row " << lineNum << ": Column " << column << " is not a decimal number." << endl;
+					break;
+				}
+			}
+			i++;
 		}
 	}
 	return isBad;
@@ -239,7 +349,7 @@ void TestArrayTemplate() {
 	Tarray<double> *testArray;
 	testArray = new Tarray<double>(6);
 
-	int i = testArray->ACTUAL_SIZE();
+	int i = testArray->DEBUG_ACTUAL_SIZE();
 	if(i != 6)
 	{
 		cerr << "Specified size and/or Size() method not working" << endl;
@@ -248,7 +358,7 @@ void TestArrayTemplate() {
 	delete testArray;
 
 	testArray = new Tarray<double>();
-	i = testArray->ACTUAL_SIZE();
+	i = testArray->DEBUG_ACTUAL_SIZE();
 	if(i != 10)
 		cerr << "Default constructor not initializing to 10" << endl;
 
@@ -256,11 +366,11 @@ void TestArrayTemplate() {
 	double two = 2.3;
 	double three = 3.5;
 
-	testArray->Add(one);
-	testArray->Add(two);
-	testArray->Add(three);
+	testArray->add(one);
+	testArray->add(two);
+	testArray->add(three);
 
-	double diff = testArray->Get(1) - 2.3;
+	double diff = testArray->get(1) - 2.3;
 	if((diff < -0.001) || (diff > 0.001))
 		cerr << "Get method not working" << endl;
 
@@ -269,17 +379,17 @@ void TestArrayTemplate() {
 		//string test;
 		//test = "test" + to_string(i);
 		double tdouble = 4.1+i;
-		testArray->Add(tdouble);
+		testArray->add(tdouble);
 	}
 
-	i = testArray->Size();
+	i = testArray->size();
 	//Array should have 17 elements now
 	if(i != 17) {
 		cerr << "dynamic sizing did not work" << endl;
 		cerr << "Expected 17, size returned " << i << endl;
 	}
 
-	i = testArray->ACTUAL_SIZE();
+	i = testArray->DEBUG_ACTUAL_SIZE();
 	//Low level array should have 20 elements
 	if(i != 20) {
 		cerr << "low level sizing did not work" << endl;
@@ -288,17 +398,17 @@ void TestArrayTemplate() {
 
 	//Test Remove functions, remove 10 elements
 	for(int j = 0; j < 10; j++) {
-		testArray->RemoveAt(testArray->Size()-1);
+		testArray->removeAt(testArray->size()-1);
 	}
 
-	i = testArray->ACTUAL_SIZE();
+	i = testArray->DEBUG_ACTUAL_SIZE();
 	//Low level array should have decreased back to size of 10
 	if(i != 10) {
 		cerr << "Remove method did not resize properly" << endl;
 		cerr << "Expected 10, actual size is " << i << endl;
 	}
 
-	i = testArray->Size();
+	i = testArray->size();
 	//Array should only have 7 elements now
 	if(i != 7) {
 		cerr << "Improper size" << endl;
@@ -316,18 +426,27 @@ void TestArrayTemplate() {
 	Eclipse *ec1 = new Eclipse("one");
 	Eclipse *ec2 = new Eclipse("two");
 
-	array2->Add(*ec1);
-	array2->Add(*ec1);
-	array2->AddCopy(*ec1);
+	array2->add(*ec1);
+	array2->add(*ec1);
+	Eclipse* ec1Copy = new Eclipse(*ec1);
+	array2->add(*ec1Copy);
 
-	ec1->SetName("yeah");
-	array2->Add(*ec2);
+	Tarray<Eclipse> *array3 = new Tarray<Eclipse>(*array2);
+	ec1->setName("yeah");
+	array2->add(*ec2);
 
-	cout << (array2->Get(0)).GetName() << endl;
-	cout << (array2->Get(1)).GetName() << endl;
-	cout << (array2->Get(2)).GetName() << endl;
-	cout << (array2->Get(3)).GetName() << endl;
-	cout << ec1->GetName() << endl;
+	cout << (array2->get(0)).getName() << endl;
+	cout << (array2->get(1)).getName() << endl;
+	cout << (array2->get(2)).getName() << endl;
+	cout << (array2->get(3)).getName() << endl;
+	cout << ec1->getName() << endl;
+
+	cout << "Other array:" << endl;
+
+	cout << (array3->get(0)).getName() << endl;
+	cout << (array3->get(1)).getName() << endl;
+	cout << (array3->get(2)).getName() << endl;
+
 
 	cout << "Finished unit testing for array" << endl;
 }

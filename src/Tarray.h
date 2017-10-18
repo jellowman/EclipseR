@@ -21,17 +21,19 @@ public:
 	Tarray(const Tarray<T>& copyArray);
 	~Tarray();
 	Tarray<T>& operator=(const Tarray<T>& otherArray);
-	void Add(T& newT);
-	void AddCopy(T newT);
-	void AddAt(T& newT, int index);
-	void RemoveDel(int index);
-	void RemoveAt(int index);
-	T Get(int i);
+	void add(T& newT);
+	void addCopy(T newT);
+	void addAt(T& newT, int index);
+	void removeDel(int index);
+	void removeAt(int index);
+	T get(int i);
 	//T& operator[](int i);
-	void ReplaceAt(T& value, int index);
-	bool HasValue(int index);
-	int Size();
-	int ACTUAL_SIZE();
+	void replaceAt(T& value, int index);
+	void swap(int p1, int p2);
+	bool hasValue(int index);
+	int size();
+	void sort();
+	int DEBUG_ACTUAL_SIZE();
 	template<typename U> friend std::ostream& operator<< (std::ostream& os, const Tarray<U>& thisObject);
 
 private:
@@ -86,7 +88,7 @@ Tarray<T>::Tarray(const Tarray<T>& copyArray) {
 	array = new T[copyArray.currentSize];
 
 	for(int i = 0; i < this->nextOpenSlot; i++) {
-		array[i] = copyArray.array[i];
+		array[i] = (copyArray.array)[i];
 	}
 	return;
 }
@@ -98,7 +100,7 @@ Tarray<T>& Tarray<T>::operator=(const Tarray<T>& otherArray) {
 	array = new T[otherArray.currentSize];
 	//Copy all elements in internal array to the other Tarray
 	for(int i = 0; i < otherArray.nextOpenSlot; i++) {
-		array[i] = otherArray.array[i];
+		array[i] = (otherArray.array)[i];
 	}
 	//*array = *(otherArray.array);
 	currentSize = otherArray.currentSize;
@@ -108,7 +110,7 @@ Tarray<T>& Tarray<T>::operator=(const Tarray<T>& otherArray) {
 
 //Basic add function by reference
 template<typename T>
-void Tarray<T>::Add(T& newT) {
+void Tarray<T>::add(T& newT) {
 	if(nextOpenSlot < currentSize) {
 		array[nextOpenSlot] = newT;
 		nextOpenSlot++;
@@ -135,7 +137,7 @@ void Tarray<T>::Add(T& newT) {
 
 //Adds to an array a copy of T passed
 template<typename T>
-void Tarray<T>::AddCopy(T newT) {
+void Tarray<T>::addCopy(T newT) {
 	if(nextOpenSlot < currentSize) {
 		array[nextOpenSlot] = newT;
 		nextOpenSlot++;
@@ -159,7 +161,7 @@ void Tarray<T>::AddCopy(T newT) {
 }
 
 template<typename T>
-void Tarray<T>::AddAt(T& newT, int index) {
+void Tarray<T>::addAt(T& newT, int index) {
 	if(nextOpenSlot < currentSize) {
 			//Push elements at index forward
 			for (int i = nextOpenSlot; i > index; i--) {
@@ -195,7 +197,7 @@ void Tarray<T>::AddAt(T& newT, int index) {
 
 //Removes an object from specified index and deletes it
 template<typename T>
-void Tarray<T>::RemoveDel(int index) {
+void Tarray<T>::removeDel(int index) {
 	if(index < nextOpenSlot) {
 		//Delete and move pointers
 		delete *array[index];
@@ -223,7 +225,7 @@ void Tarray<T>::RemoveDel(int index) {
 
 //Removes an object from specified index
 template<typename T>
-void Tarray<T>::RemoveAt(int index) {
+void Tarray<T>::removeAt(int index) {
 	if(index < nextOpenSlot) {
 		//Move pointers, so object is not deleted, but not pointed to in this array
 		for(int i = index; i < nextOpenSlot - 1; i++) {
@@ -250,7 +252,7 @@ void Tarray<T>::RemoveAt(int index) {
 
 //Returns OBJECT T
 template<typename T>
-T Tarray<T>::Get(int i) {
+T Tarray<T>::get(int i) {
 	if(i >= nextOpenSlot) {
 			cerr << "INVALID ACCESS RANGE: Size specified: " << i << ". Max size: "
 							<< nextOpenSlot-1 << endl;
@@ -269,21 +271,28 @@ T& Tarray<T>::operator[] (int i) {
 
 //Set a value at an index in Tarray to T, DELETES OLD VALUE
 template<typename T>
-void Tarray<T>::ReplaceAt(T& value, int index) {
+void Tarray<T>::replaceAt(T& value, int index) {
 	if(index >= nextOpenSlot) {
 		cerr << "INVALID SET RANGE: Size specified: " << index << ". Max size: "
 						<< nextOpenSlot-1 << endl;
 		return;
 	} else {
-	delete array[index];
+	//Calls =overloader for T type, delete is handled there
 	array[index] = value;
 	return;
 	}
 }
 
+template<typename T>
+void Tarray<T>::swap(int p1, int p2) {
+	T *temp = &(array[p1]);
+	array[p1] = array[p2];
+	array[p2] = *temp;
+}
+
 //Checks if there is a value stored at this index
 template<typename T>
-bool Tarray<T>::HasValue(int index) {
+bool Tarray<T>::hasValue(int index) {
 	if(index >= nextOpenSlot) {
 		return false;
 	} else {
@@ -293,15 +302,17 @@ bool Tarray<T>::HasValue(int index) {
 
 //Returns effective size of dynamic array (not actual internal array size)
 template<typename T>
-int Tarray<T>::Size() {
+int Tarray<T>::size() {
 	return nextOpenSlot;
 }
 
 //Returns actual size (USE ONLY FOR DEBUGGING PURPOSES)
 template<typename T>
-int Tarray<T>::ACTUAL_SIZE() {
+int Tarray<T>::DEBUG_ACTUAL_SIZE() {
 	return currentSize;
 }
+
+//Sort using binary insertion sort
 
 //Support for printing to ostream in CSV format
 template<typename T>

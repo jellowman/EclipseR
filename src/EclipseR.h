@@ -4,10 +4,17 @@
  * Description: Initializes variables for the main method for EclipseR
  */
 #include "Tarray.h"
+#include "Eclipse.h"
 using namespace std;
 
 //Main method of program, handles input and output for eclipse data
 int main();
+
+//Reads from a file specified by inFS and parses data into eclipseArray
+bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipseArray, bool eclipseID[]);
+
+//Prints values
+void PrintValues(Tarray<Eclipse>* eclipses);
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.

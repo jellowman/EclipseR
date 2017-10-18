@@ -12,15 +12,21 @@
 #include "Tarray.h"
 using namespace std;
 
+enum Month {Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, other};
 class Eclipse {
 public:
 	Eclipse();
+	~Eclipse();
 	Eclipse(string name);
 	Eclipse(const Eclipse& otherEcl);
 	Eclipse& operator=(const Eclipse& otherEcl);
-	string GetName();
-	void SetName(string newName);
-	void SetParts(const Tarray<string>& otherParts);
+	string getName();
+	string getCol(int i) const;
+	int getID();
+	void setName(string newName);
+	void setParts(const Tarray<string>& otherParts);
+	Month getMonth() const;
+	int compareTo(const Eclipse& otherEclipse, int numCol);
 	friend ostream& operator << (ostream& os, const Eclipse& theEclipse);
 private:
 	string* name;
@@ -28,5 +34,6 @@ private:
 
 };
 
+void ColumnSort(Tarray<Eclipse>& eclipses, int colNum);
 
 #endif /* ECLIPSE_H_ */
