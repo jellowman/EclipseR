@@ -112,6 +112,7 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 	//Read past the "junk lines" at the beginning of the file
 	for(int i = 0; i < 10; i++) {
 		getline(inFS, nextLine);
+		lineNum++;
 	}
 
 	//Loop through input file until the end of file is reached
