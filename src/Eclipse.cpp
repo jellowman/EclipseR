@@ -65,6 +65,7 @@ int Eclipse::getID() {
 	return stoi(parts->get(0));
 }
 
+//Returns the month of the eclipse as an enum
 Month Eclipse::getMonth() const{
 	if(parts->get(3) == "Jan") {
 		return Jan;
@@ -95,7 +96,7 @@ Month Eclipse::getMonth() const{
 	}
 }
 
-//Comparison method for sorting
+//Comparison method for sorting eclipses
 int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 	int diff;
 	double dubDiff;
@@ -174,6 +175,7 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 	}*/
 }
 
+//Compares specified eclipse column to a string value
 int Eclipse::compareToStr(const string& term, int numCol) {
 	int diff;
 	double dubDiff;
@@ -212,6 +214,9 @@ int Eclipse::compareToStr(const string& term, int numCol) {
 	//Month Comparison
 	case 3:
 		return (this->getMonth() - StrMo(term));
+		break;
+	case 9:
+		return (this->getCol(9).at(0) - term.at(0));
 		break;
 	//16 not in P type, check int
 	case 16:
@@ -319,6 +324,7 @@ void ColumnSort(Tarray<Eclipse>& eclipses, int colNum) {
 	} //End Loop for element
 }
 
+//Converts string to a month enum
 Month StrMo(string mon) {
 	if(mon == "Jan") {
 		return Jan;
@@ -352,166 +358,58 @@ Month StrMo(string mon) {
 //Search by binary
 void ColumnSearchBinary(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, int& min, int& max) {
 	int lmin; int lmax; int lmid;
-	/*if(colNum > 15) {
-		lmin = 0; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
-		//Search for min value
-		while((min == -1) && (lmax-lmin >= 1)) {
-			cout << "Min: " << lmin << " Max: " << lmax << " Mid: " << lmid << endl;
-			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
-				cout << "Hit 0" << endl;
-				if(lmid == 0) {
-					min = 0;
-					cout << "Min is 0" << endl;
-				} else if (eclipses.get(lmid-1).getCol(colNum).compare(searchTerm) != 0) {
-					min = lmid;
-					cout << "Min is " << min << endl;
-				} else {
-					lmax = lmid;
-					lmid = (lmin+lmax)/2;
-				}
-			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
-				cout << "Hit 1" << endl;
-				lmax = lmid-1;
-				lmid = (lmin+lmax)/2;
+	lmin = 0; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+	//Search for min value
+	while((min == -1) && (lmax-lmin >= 1)) {
+		if(eclipses.get(lmid).compareToStr(searchTerm, colNum) == 0) {
+			if(lmid == 0) {
+				min = 0;
+			} else if (eclipses.get(lmid-1).compareToStr(searchTerm, colNum) != 0) {
+				min = lmid;
 			} else {
-				cout << "Hit 2" << endl;
-				lmin = lmid + 1;
+				lmax = lmid;
 				lmid = (lmin+lmax)/2;
 			}
+		} else if(eclipses.get(lmid).compareToStr(searchTerm, colNum) < 0) { //If mid val is lower than search term
+			lmin = lmid + 1;
+			lmid = (lmin+lmax)/2;
+		} else { //If mid val is higher than search term
+			lmax = lmid-1;
+			lmid = (lmin+lmax)/2;
 		}
-		lmin = (min == -1) ? 0 : min;
-		lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
-		//Search for max val
-		while((max == -1) && (lmax-lmin >= 1)) {
-			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
-				if(lmid == eclipses.size()-1) {
-					max = lmax;
-				} else if (eclipses.get(lmid+1).getCol(colNum).compare(searchTerm) != 0) {
-					max = lmax;
-				} else {
-					lmin = lmid;
-					lmid = (lmin+lmax)/2;
-				}
-			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
-				lmax = lmid-1;
-				lmid = (lmin+lmax)/2;
+	}
+	lmin = (min == -1) ? 0 : min;
+	lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+	//Search for max val
+	while((max == -1) && (lmax-lmin >= 1)) {
+		//cout << "Min: " << lmin << " Max: " << lmax << " Mid: " << lmid << endl;
+		if(eclipses.get(lmid).compareToStr(searchTerm, colNum) == 0) {
+			if(lmid == eclipses.size()-1) {
+				max = lmid;
+			} else if (eclipses.get(lmid+1).compareToStr(searchTerm, colNum) != 0) {
+				max = lmid;
 			} else {
-				lmin = lmid+1;
+				lmin = lmid;
 				lmid = (lmin+lmax)/2;
-			}
-		}
-	} else if (colNum == 4) {
-		lmin = 0; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
-		//Search for min value
-		while((min == -1) && (lmax-lmin >= 1)) {
-			cout << "Min: " << lmin << " Max: " << lmax << " Mid: " << lmid << endl;
-			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
-				cout << "Hit 0" << endl;
-				if(lmid == 0) {
-					min = 0;
-					cout << "Min is 0" << endl;
-				} else if (eclipses.get(lmid-1).getCol(colNum).compare(searchTerm) != 0) {
-					min = lmid;
-					cout << "Min is " << min << endl;
-				} else {
-					lmax = lmid;
-					lmid = (lmin+lmax)/2;
+				if(lmid == lmin) {
+					lmid++;
 				}
-			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
-				cout << "Hit 1" << endl;
-				lmax = lmid-1;
-				lmid = (lmin+lmax)/2;
-			} else {
-				cout << "Hit 2" << endl;
-				lmin = lmid + 1;
-				lmid = (lmin+lmax)/2;
 			}
+		} else if(eclipses.get(lmid).compareToStr(searchTerm, colNum) < 0) {
+			lmin = lmid+1;
+			lmid = (lmin+lmax)/2;
+		} else {
+			lmax = lmid-1;
+			lmid = (lmin+lmax)/2;
 		}
-		lmin = (min == -1) ? 0 : min;
-		lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
-		//Search for max val
-		while((max == -1) && (lmax-lmin >= 1)) {
-			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
-				if(lmid == eclipses.size()-1) {
-					max = lmax;
-				} else if (eclipses.get(lmid+1).getCol(colNum).compare(searchTerm) != 0) {
-					max = lmax;
-				} else {
-					lmin = lmid;
-					lmid = (lmin+lmax)/2;
-				}
-			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
-				lmax = lmid-1;
-				lmid = (lmin+lmax)/2;
-			} else {
-				lmin = lmid+1;
-				lmid = (lmin+lmax)/2;
-			}
-		}
-	} else {*/
-		lmin = 0; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
-		//Search for min value
-		while((min == -1) && (lmax-lmin >= 1)) {
-			if(eclipses.get(lmid).compareToStr(searchTerm, colNum) == 0) {
-				if(lmid == 0) {
-					min = 0;
-				} else if (eclipses.get(lmid-1).compareToStr(searchTerm, colNum) != 0) {
-					min = lmid;
-				} else {
-					lmax = lmid;
-					lmid = (lmin+lmax)/2;
-				}
-			} else if(eclipses.get(lmid).compareToStr(searchTerm, colNum) < 0) { //If mid val is lower than search term
-				lmin = lmid + 1;
-				lmid = (lmin+lmax)/2;
-			} else { //If mid val is higher than search term
-				lmax = lmid-1;
-				lmid = (lmin+lmax)/2;
-			}
-		}
-		lmin = (min == -1) ? 0 : min;
-		lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
-		//Search for max val
-		while((max == -1) && (lmax-lmin >= 1)) {
-			cout << "Min: " << lmin << " Max: " << lmax << " Mid: " << lmid << endl;
-			if(eclipses.get(lmid).compareToStr(searchTerm, colNum) == 0) {
-				if(lmid == eclipses.size()-1) {
-					max = lmid;
-				} else if (eclipses.get(lmid+1).compareToStr(searchTerm, colNum) != 0) {
-					max = lmid;
-				} else {
-					lmin = lmid;
-					lmid = (lmin+lmax)/2;
-					if(lmid == lmin) {
-						lmid++;
-					}
-				}
-			} else if(eclipses.get(lmid).compareToStr(searchTerm, colNum) < 0) {
-				lmin = lmid+1;
-				lmid = (lmin+lmax)/2;
-			} else {
-				lmax = lmid-1;
-				lmid = (lmin+lmax)/2;
-			}
-		}
-	//}
+	}
 }
 
 //Search Linearly
 void ColumnSearch(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, Tarray<int>& matches) {
-	if(colNum > 15) {
-		for(int i = 0; i < eclipses.size(); i++) {
-			if(eclipses.get(i).getCol(9).at(0) == 'P') {
-
-			} else if (eclipses.get(i).getCol(colNum).compare(searchTerm) == 0) {
-				matches.add(i);
-			}
-		}
-	} else {
-		for(int i = 0; i < eclipses.size(); i++) {
-			if(eclipses.get(i).getCol(colNum).compare(searchTerm) == 0) {
-				matches.add(i);
-			}
+	for(int i = 0; i < eclipses.size(); i++) {
+		if(eclipses.get(i).compareToStr(searchTerm, colNum) == 0) {
+			matches.add(i);
 		}
 	}
 }

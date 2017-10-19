@@ -160,6 +160,7 @@ void Tarray<T>::addCopy(T newT) {
 	return;
 }
 
+//Adds to a specific location in the array, pushing other elements back
 template<typename T>
 void Tarray<T>::addAt(T& newT, int index) {
 	if(nextOpenSlot < currentSize) {
@@ -283,6 +284,7 @@ void Tarray<T>::replaceAt(T& value, int index) {
 	}
 }
 
+//Swap values in the array
 template<typename T>
 void Tarray<T>::swap(int p1, int p2) {
 	T *temp;
@@ -312,8 +314,6 @@ template<typename T>
 int Tarray<T>::DEBUG_ACTUAL_SIZE() {
 	return currentSize;
 }
-
-//Sort using binary insertion sort
 
 //Support for printing to ostream in CSV format
 template<typename T>

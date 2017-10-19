@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : EclipseR.cpp
 // Author      : Trevor Fisher
-// Version     : 0.2
+// Version     : 1.0
 // Description : Initial i/o implementation for EclipseR Software
 //============================================================================
 
@@ -30,6 +30,11 @@ int main() {
 
 	//Keep track of eclipses (Array of Eclispes)
 	Tarray<Eclipse> *eclipses = new Tarray<Eclipse>(10);
+	//Hold trash at beginning of file
+	Tarray<string> *header = new Tarray<string>();
+
+	//Keep track of valid eclipses and num of data lines read
+	int dataTally = 0; int validTally = 0;
 
 	//Enter data input loop
 	bool anyData = false;
@@ -46,7 +51,9 @@ int main() {
 				cout << "File is not available." << endl;
 			} else {
 				//Read file contents
-				bool hasData = ReadFile(inFS, eclipses, eclipseID);
+				delete header;
+				header = new Tarray<string>(10);
+				bool hasData = ReadFile(inFS, eclipses, header, dataTally, validTally);
 				//Data has been read at least once
 				if(hasData) {
 					anyData = true;
@@ -76,7 +83,7 @@ int main() {
 		case 'o':
 		case 'O':
 			//Output data
-			OutputValues(eclipses);
+			OutputValues(eclipses, header, dataTally, validTally);
 			break;
 		case 's':
 		case 'S':
@@ -86,11 +93,12 @@ int main() {
 		case 'f':
 		case 'F':
 			//Find data
-			FindValues(eclipses, sortedBy);
+			FindValues(eclipses, sortedBy, header);
 			break;
 		case 'q':
 		case 'Q':
 			//Quit Program
+			cout << "~~~Goodbye~~~" << endl;
 			exit = true;
 			break;
 		default:
@@ -102,7 +110,8 @@ int main() {
 	//END PROGRAM
 }
 
-bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
+//Reads in
+bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, Tarray<string> *header, int& dataTally, int& validTally) {
 
 	//bool eclipseID[20000];
 	//Variable used to hold next line from the eclipse data text file
@@ -113,7 +122,8 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 	//Read past the "junk lines" at the beginning of the file
 	for(int i = 0; i < 10; i++) {
 		getline(inFS, nextLine);
-		lineNum++;
+		header->add(nextLine);
+		//lineNum++;
 	}
 
 	//Loop through input file until the end of file is reached
@@ -121,6 +131,7 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 	//while(lineNum < 26) {
 		//getline(inFS, nextLine);
 		lineNum++;
+		dataTally++;
 		//string array to hold individual columns from file
 		Tarray<string> *columnStrings = new Tarray<string>();
 
@@ -182,6 +193,7 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 		if(isBad)
 			continue;
 
+		validTally++;
 		//Check for unique catalog number
 		int idNum = 0;
 		idNum = stoi(columnStrings->get(0));
@@ -223,7 +235,7 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, bool eclipseID[]) {
 	return hasData;
 } //END ReadFile method
 
-void OutputValues(Tarray<Eclipse>* eclipses) {
+void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTally, int& validTally) {
 	cout << "Enter the name of the output file:" << endl;
 	string outFileName;
 	getline(cin, outFileName);
@@ -235,17 +247,27 @@ void OutputValues(Tarray<Eclipse>* eclipses) {
 			return;
 		}
 		//Now, print out eclipses
+		for(int i = 0; i < header->size(); i++) {
+			outFile << header->get(i) << endl;
+		}
 		for(int i = 0; i < eclipses->size(); i++) {
 			Eclipse anEclipse = eclipses->get(i);
 			outFile << anEclipse << endl;
 		}
+		outFile << "Data lines read: " << dataTally << "; Valid eclipses read: " << validTally <<
+				"; Eclipses in memory: " << eclipses->size() << endl;
 		outFile.close();
 	} else {
 		//Now, print out eclipses
+		for(int i = 0; i < header->size(); i++) {
+			cout << header->get(i) << endl;
+		}
 		for(int i = 0; i < eclipses->size(); i++) {
 			Eclipse anEclipse = eclipses->get(i);
 			cout << anEclipse << endl;
 		}
+		cout << "Data lines read: " << dataTally << "; Valid eclipses read: " << validTally <<
+			"; Eclipses in memory: " << eclipses->size() << endl;
 	}
 
 } //END OutputValues method
@@ -268,7 +290,7 @@ void SortValues(Tarray<Eclipse>* eclipses, int& sortBy) {
 	}
 }
 
-void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy) {
+void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy, Tarray<string>* header) {
 
 	cout<< "Select a data field to find from 1-18" << endl;
 	string nextLine;
@@ -310,17 +332,27 @@ void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy) {
 		if(colNum == sortedBy) {
 			ColumnSearchBinary(*eclipses, searchTerm, colNum-1, min, max);
 
-			//Print out values between min and max
-			for(int i = min; i <= max; i++) {
-				cout << eclipses->get(i) << endl;
+			//Print out values between min and max, if there were any found
+			for(int i = 0; i < header->size(); i++) {
+				cout << header->get(i) << endl;
 			}
+			if(min != -1) {
+				for(int i = min; i <= max; i++) {
+					cout << eclipses->get(i) << endl;
+				}
+			}
+			cout << "Eclipses found: " << max-min << endl;
 		} else {
 			ColumnSearch(*eclipses, searchTerm, colNum-1, *matches);
 
 			//Print out values specified in array
+			for(int i = 0; i < header->size(); i++) {
+				cout << header->get(i) << endl;
+			}
 			for(int i = 0; i < matches->size(); i++) {
 				cout << eclipses->get(matches->get(i)) << endl;
 			}
+			cout << "Eclipses found: " << matches->size() << endl;
 		}
 	} catch(invalid_argument& ar) {
 

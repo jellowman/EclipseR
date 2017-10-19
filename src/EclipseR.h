@@ -11,16 +11,16 @@ using namespace std;
 int main();
 
 //Reads from a file specified by inFS and parses data into eclipseArray
-bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipseArray, bool eclipseID[]);
+bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipseArray, Tarray<string> *header, int& dataTally, int& validTally);
 
 //Output values to a file
-void OutputValues(Tarray<Eclipse>* eclipses);
+void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTally, int& validTally);
 
 //Sort values
 void SortValues(Tarray<Eclipse>* eclipses, int& sortBy);
 
 //Find values
-void FindValues(Tarray<Eclipse>* eclipses, int& sortBy);
+void FindValues(Tarray<Eclipse>* eclipses, int& sortBy, Tarray<string>* header);
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.
