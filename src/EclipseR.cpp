@@ -257,10 +257,14 @@ void SortValues(Tarray<Eclipse>* eclipses, int& sortBy) {
 	getline(cin, nextLine);
 	try{
 		int colNum = stoi(nextLine);
+		if(colNum > 18 || colNum < 1) {
+			cout << "Invalid column specified." << endl;
+			return;
+		}
 		ColumnSort(*eclipses, colNum-1);
 		sortBy = colNum;
-	} catch(invalid_argument ar) {
-
+	} catch(invalid_argument& ar) {
+		cout << "Invalid column specified." << endl;
 	}
 }
 
@@ -275,15 +279,50 @@ void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy) {
 		int max = -1;
 		Tarray<int>* matches = new Tarray<int>();
 		int colNum = stoi(nextLine);
+		//Check for valid column number
+		if(colNum > 18 || colNum < 1) {
+					cout << "Invalid column specified." << endl;
+					return;
+		}
+		//Check if column was month entry
+		if(colNum == 4) {
+			cout << "Enter a month abbreviation to search for." << endl;
+			getline(cin, searchTerm);
+			Month mon = StrMo(searchTerm);
+			if(mon >= 12) {
+				cout << "Invalid month specified" << endl;
+				return;
+			}
+		}
+		//Get any value to search for
+		else {
 		cout << "Pick a value to search for." << endl;
 		getline(cin, searchTerm);
+		}
 
+		if(searchTerm.empty() && ((colNum == 17) || (colNum == 18))) {
+			searchTerm = "P";
+			colNum = 10;
+		} else if(searchTerm.empty()) {
+			return;
+		}
+		//Determine to sort by binary or linear
 		if(colNum == sortedBy) {
 			ColumnSearchBinary(*eclipses, searchTerm, colNum-1, min, max);
+
+			//Print out values between min and max
+			for(int i = min; i <= max; i++) {
+				cout << eclipses->get(i) << endl;
+			}
 		} else {
 			ColumnSearch(*eclipses, searchTerm, colNum-1, *matches);
+
+			//Print out values specified in array
+			for(int i = 0; i < matches->size(); i++) {
+				cout << eclipses->get(matches->get(i)) << endl;
+			}
 		}
-	} catch(invalid_argument ar) {
+	} catch(invalid_argument& ar) {
 
 	}
 }

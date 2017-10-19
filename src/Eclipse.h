@@ -27,12 +27,16 @@ public:
 	void setParts(const Tarray<string>& otherParts);
 	Month getMonth() const;
 	int compareTo(const Eclipse& otherEclipse, int numCol);
+	int compareToStr(const string& term, int numCol);
 	friend ostream& operator << (ostream& os, const Eclipse& theEclipse);
 private:
 	string* name;
 	Tarray<string>* parts;
 
 };
+
+//Convert from string to Month enum
+Month StrMo(string mon);
 
 void ColumnSort(Tarray<Eclipse>& eclipses, int colNum);
 

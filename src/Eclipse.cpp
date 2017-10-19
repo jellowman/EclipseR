@@ -114,7 +114,7 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 		diff = stoi(this->getCol(numCol));
 		diff = diff - stoi(otherEclipse.getCol(numCol));
 		return diff;
-		} catch (invalid_argument ar) {
+		} catch (invalid_argument& ar) {
 			cerr << "Error converting integers:" << this->getCol(numCol) << " and " << otherEclipse.getCol(numCol) << endl;
 			return 0;
 		}
@@ -166,12 +166,90 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 		return this->getCol(numCol).compare(otherEclipse.getCol(numCol));
 		break;
 	}
-	if(numCol == 0) {
+	/*if(numCol == 0) {
 
 	}
 	else if(numCol == 3) {
 		return (this->getMonth() - otherEclipse.getMonth());
+	}*/
+}
+
+int Eclipse::compareToStr(const string& term, int numCol) {
+	int diff;
+	double dubDiff;
+	switch(numCol) {
+	//Look at integer cases
+	case 0:
+	case 1:
+	case 2:
+	case 4:
+	case 6:
+	case 7:
+	case 8:
+	case 14:
+	case 15:
+		try {
+		diff = stoi(this->getCol(numCol));
+		diff = diff - stoi(term);
+		return diff;
+		} catch (invalid_argument& ar) {
+			cerr << "Error converting integers:" << this->getCol(numCol) << " and " << term << endl;
+			return 0;
+		}
+		break;
+	//Look at double cases
+	case 10:
+	case 11:
+		dubDiff = stod(this->getCol(numCol)) - stod(term);
+		if(dubDiff > 0.000001) {
+			return 1;
+		} else if (dubDiff < 0.000001) {
+			return -1;
+		} else {
+			return 0;
+		}
+		break;
+	//Month Comparison
+	case 3:
+		return (this->getMonth() - StrMo(term));
+		break;
+	//16 not in P type, check int
+	case 16:
+		if((this->getCol(9).at(0) != 'P') && (term.at(0) == 'P')) {
+			return -1;
+		} else if((this->getCol(9).at(0) == 'P') && (term.at(0) != 'P')) {
+			return 1;
+		} else if((this->getCol(9).at(0) == 'P') && (term.at(0) == 'P')) {
+			return 0;
+		} else {
+			diff = stoi(this->getCol(numCol));
+			diff = diff - stoi(term);
+			return diff;
+		}
+		break;
+	//17 not in P type, check string
+	case 17:
+		if((this->getCol(9).at(0) != 'P') && (term.at(0) == 'P')) {
+			return -1;
+		} else if((this->getCol(9).at(0) == 'P') && (term.at(0) != 'P')) {
+			return 1;
+		} else if((this->getCol(9).at(0) == 'P') && (term.at(0) == 'P')) {
+			return 0;
+		} else {
+			return this->getCol(numCol).compare(term);
+		}
+		break;
+	//Other cases are string
+	default:
+		return this->getCol(numCol).compare(term);
+		break;
 	}
+	/*if(numCol == 0) {
+
+	}
+	else if(numCol == 3) {
+		return (this->getMonth() - StrMo(term));
+	}*/
 }
 
 std::ostream& operator << (ostream& os, const Eclipse& theEclipse) {
@@ -241,35 +319,70 @@ void ColumnSort(Tarray<Eclipse>& eclipses, int colNum) {
 	} //End Loop for element
 }
 
+Month StrMo(string mon) {
+	if(mon == "Jan") {
+		return Jan;
+	} else if(mon == "Feb") {
+		return Feb;
+	} else if(mon == "Mar") {
+		return Mar;
+	} else if(mon == "Apr") {
+		return Apr;
+	} else if(mon == "May") {
+		return May;
+	} else if(mon == "Jun") {
+		return Jun;
+	} else if(mon == "Jul") {
+		return Jul;
+	} else if(mon == "Aug") {
+		return Aug;
+	} else if(mon == "Sep") {
+		return Sep;
+	} else if(mon == "Oct") {
+		return Oct;
+	} else if(mon == "Nov") {
+		return Nov;
+	} else if(mon == "Dec") {
+		return Dec;
+	} else {
+		return other;
+	}
+}
+
 //Search by binary
 void ColumnSearchBinary(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, int& min, int& max) {
 	int lmin; int lmax; int lmid;
-	if(colNum > 15) {
-
-	} else {
-		lmin = 0; lmax = eclipses.size(); lmid = (lmin+lmax)/2;
+	/*if(colNum > 15) {
+		lmin = 0; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
 		//Search for min value
-		while((min == -1) && (lmin-lmax >= 1)) {
+		while((min == -1) && (lmax-lmin >= 1)) {
+			cout << "Min: " << lmin << " Max: " << lmax << " Mid: " << lmid << endl;
 			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
+				cout << "Hit 0" << endl;
 				if(lmid == 0) {
 					min = 0;
+					cout << "Min is 0" << endl;
 				} else if (eclipses.get(lmid-1).getCol(colNum).compare(searchTerm) != 0) {
 					min = lmid;
+					cout << "Min is " << min << endl;
 				} else {
 					lmax = lmid;
 					lmid = (lmin+lmax)/2;
 				}
 			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
+				cout << "Hit 1" << endl;
 				lmax = lmid-1;
 				lmid = (lmin+lmax)/2;
 			} else {
+				cout << "Hit 2" << endl;
 				lmin = lmid + 1;
 				lmid = (lmin+lmax)/2;
 			}
 		}
-		lmin = min; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+		lmin = (min == -1) ? 0 : min;
+		lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
 		//Search for max val
-		while((max == -1) && (lmin-lmax >= 1)) {
+		while((max == -1) && (lmax-lmin >= 1)) {
 			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
 				if(lmid == eclipses.size()-1) {
 					max = lmax;
@@ -287,7 +400,101 @@ void ColumnSearchBinary(Tarray<Eclipse>& eclipses, string searchTerm, int colNum
 				lmid = (lmin+lmax)/2;
 			}
 		}
-	}
+	} else if (colNum == 4) {
+		lmin = 0; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+		//Search for min value
+		while((min == -1) && (lmax-lmin >= 1)) {
+			cout << "Min: " << lmin << " Max: " << lmax << " Mid: " << lmid << endl;
+			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
+				cout << "Hit 0" << endl;
+				if(lmid == 0) {
+					min = 0;
+					cout << "Min is 0" << endl;
+				} else if (eclipses.get(lmid-1).getCol(colNum).compare(searchTerm) != 0) {
+					min = lmid;
+					cout << "Min is " << min << endl;
+				} else {
+					lmax = lmid;
+					lmid = (lmin+lmax)/2;
+				}
+			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
+				cout << "Hit 1" << endl;
+				lmax = lmid-1;
+				lmid = (lmin+lmax)/2;
+			} else {
+				cout << "Hit 2" << endl;
+				lmin = lmid + 1;
+				lmid = (lmin+lmax)/2;
+			}
+		}
+		lmin = (min == -1) ? 0 : min;
+		lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+		//Search for max val
+		while((max == -1) && (lmax-lmin >= 1)) {
+			if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) == 0) {
+				if(lmid == eclipses.size()-1) {
+					max = lmax;
+				} else if (eclipses.get(lmid+1).getCol(colNum).compare(searchTerm) != 0) {
+					max = lmax;
+				} else {
+					lmin = lmid;
+					lmid = (lmin+lmax)/2;
+				}
+			} else if(eclipses.get(lmid).getCol(colNum).compare(searchTerm) < 0) {
+				lmax = lmid-1;
+				lmid = (lmin+lmax)/2;
+			} else {
+				lmin = lmid+1;
+				lmid = (lmin+lmax)/2;
+			}
+		}
+	} else {*/
+		lmin = 0; lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+		//Search for min value
+		while((min == -1) && (lmax-lmin >= 1)) {
+			if(eclipses.get(lmid).compareToStr(searchTerm, colNum) == 0) {
+				if(lmid == 0) {
+					min = 0;
+				} else if (eclipses.get(lmid-1).compareToStr(searchTerm, colNum) != 0) {
+					min = lmid;
+				} else {
+					lmax = lmid;
+					lmid = (lmin+lmax)/2;
+				}
+			} else if(eclipses.get(lmid).compareToStr(searchTerm, colNum) < 0) { //If mid val is lower than search term
+				lmin = lmid + 1;
+				lmid = (lmin+lmax)/2;
+			} else { //If mid val is higher than search term
+				lmax = lmid-1;
+				lmid = (lmin+lmax)/2;
+			}
+		}
+		lmin = (min == -1) ? 0 : min;
+		lmax = eclipses.size()-1; lmid = (lmin+lmax)/2;
+		//Search for max val
+		while((max == -1) && (lmax-lmin >= 1)) {
+			cout << "Min: " << lmin << " Max: " << lmax << " Mid: " << lmid << endl;
+			if(eclipses.get(lmid).compareToStr(searchTerm, colNum) == 0) {
+				if(lmid == eclipses.size()-1) {
+					max = lmid;
+				} else if (eclipses.get(lmid+1).compareToStr(searchTerm, colNum) != 0) {
+					max = lmid;
+				} else {
+					lmin = lmid;
+					lmid = (lmin+lmax)/2;
+					if(lmid == lmin) {
+						lmid++;
+					}
+				}
+			} else if(eclipses.get(lmid).compareToStr(searchTerm, colNum) < 0) {
+				lmin = lmid+1;
+				lmid = (lmin+lmax)/2;
+			} else {
+				lmax = lmid-1;
+				lmid = (lmin+lmax)/2;
+			}
+		}
+	//}
 }
 
 //Search Linearly
