@@ -175,6 +175,14 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 	}*/
 }
 
+bool Eclipse::operator==(const Eclipse& otherEclipse) {
+	if(this->compareTo(otherEclipse, 0) == 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 //Compares specified eclipse column to a string value
 int Eclipse::compareToStr(const string& term, int numCol) {
 	int diff;
