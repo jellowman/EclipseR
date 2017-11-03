@@ -12,12 +12,14 @@
 #include "EclipseR.h"
 #include "Tarray.h"
 #include "Eclipse.h"
+#include "TList.h"
 using namespace std;
 
 
 int main() {
 	//Unit testing
 	//TestArrayTemplate();
+	TestLinkedList();
 
 	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
 	bool eclipseID[20000];
@@ -573,4 +575,63 @@ void TestArrayTemplate() {
 
 
 	cout << "Finished unit testing for array" << endl;
+}
+
+//Unit testing for templated linked list
+void TestLinkedList() {
+	cout << "Begin LL Testing:" << endl;
+	TList<string>* eclipses = new TList<string>();
+
+	string one = "One";
+	eclipses->add(one);
+
+	string oneCopy = eclipses->getAt(0);
+	cout << "The item received from the list is: " << oneCopy << endl;
+
+	string two = "Two";
+	string three = "Three";
+	eclipses->add(two);
+	eclipses->add(three);
+
+	cout << "---Printing out Linked List---" << endl;
+	cout << eclipses << endl;
+	cout << "---End of Linked List Printing---" << endl;
+
+	cout << "Size: " << eclipses->size() << endl;
+
+	string four = "Four";
+	eclipses->insertAt(four, 4);
+
+	string five = "Five";
+	eclipses->insertAt(five, 10);
+
+	cout << "---Printing out Linked List---" << endl;
+	cout << eclipses << endl;
+	cout << "---End of Linked List Printing---" << endl;
+
+	cout << "Size: " << eclipses->size() << endl;
+	eclipses->remove();
+
+	cout << "---Printing out Linked List---" << endl;
+	cout << eclipses << endl;
+	cout << "---End of Linked List Printing---" << endl;
+
+	cout << "Size: " << eclipses->size() << endl;
+
+	cout << "---Test Finding---" << endl;
+	string six = "Six";
+
+	cout << "Index of six is: " << eclipses->find(six) << endl;
+
+	eclipses->insertAt(six, 3);
+	cout << eclipses << endl;
+	cout << "Now index of six is: " << eclipses->find(six) << endl;
+
+	eclipses->removeAt(eclipses->find(six));
+	eclipses->removeAt(eclipses->find(one));
+
+	cout << eclipses << endl;
+	cout << eclipses->size() << endl;
+
+	cout << "End LL Testing:" << endl;
 }

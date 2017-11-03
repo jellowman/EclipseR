@@ -39,4 +39,7 @@ bool IsColumnNumber(Tarray<string> *colStrings, int column, bool isInt, int line
 //Unit test for templated array class
 void TestArrayTemplate();
 
+//Unit test for templated Linked List class
+void TestLinkedList();
+
 

@@ -11,7 +11,7 @@
 #include <iomanip>
 
 Eclipse::Eclipse() {
-	name = new string("");
+	name = NULL;
 	parts = new Tarray<string>(18);
 }
 
@@ -181,6 +181,10 @@ bool Eclipse::operator==(const Eclipse& otherEclipse) {
 	} else {
 		return false;
 	}
+}
+
+int Eclipse::compare(const Eclipse& otherEclipse) {
+	return (this->compareTo(otherEclipse, 0));
 }
 
 //Compares specified eclipse column to a string value

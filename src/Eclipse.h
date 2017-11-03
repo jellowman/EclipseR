@@ -28,6 +28,7 @@ public:
 	void setParts(const Tarray<string>& otherParts);
 	Month getMonth() const;
 	int compareTo(const Eclipse& otherEclipse, int numCol);
+	int compare(const Eclipse& otherEclipse);
 	int compareToStr(const string& term, int numCol);
 	friend ostream& operator << (ostream& os, const Eclipse& theEclipse);
 private:
