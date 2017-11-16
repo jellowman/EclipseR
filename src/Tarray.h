@@ -29,7 +29,7 @@ public:
 	void removeAt(int index);
 	T& get(int i) const;
 	T getCopy(int i) const;
-	//T& operator[](int i);
+	T* operator[](int i) const;
 	void replaceAt(T& value, int index);
 	void swap(int p1, int p2);
 	bool hasValue(int index);
@@ -258,6 +258,17 @@ void Tarray<T>::removeAt(int index) {
 //Returns OBJECT T
 template<typename T>
 T& Tarray<T>::get(int i) const{
+	if(i >= nextOpenSlot) {
+			cerr << "INVALID ACCESS RANGE: Size specified: " << i << ". Max size: "
+							<< nextOpenSlot-1 << endl;
+			exit(1);
+		} else {
+			return array[i];
+		}
+}
+
+template<typename T>
+T* Tarray<T>::operator[](int i) const{
 	if(i >= nextOpenSlot) {
 			cerr << "INVALID ACCESS RANGE: Size specified: " << i << ". Max size: "
 							<< nextOpenSlot-1 << endl;
