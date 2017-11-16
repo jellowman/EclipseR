@@ -30,6 +30,7 @@ public:
 	int compareTo(const Eclipse& otherEclipse, int numCol);
 	int compare(const Eclipse& otherEclipse);
 	int compareToStr(const string& term, int numCol);
+	int getKey() const;
 	friend ostream& operator << (ostream& os, const Eclipse& theEclipse);
 private:
 	string* name;

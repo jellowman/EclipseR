@@ -427,7 +427,7 @@ int TList<T>::find(T& key) {
 
 template<typename T>
 T TList<T>::remove() {
-	T* temp = new T(*_item);
+	T temp = *_item;
 	delete _item;
 
 	//Set item to NULL if it's the last chain, otherwise, make the data
@@ -449,7 +449,7 @@ T TList<T>::remove() {
 	}
 	*(_size) = *(_size)-1;
 
-	return *temp;
+	return temp;
 }
 
 template<typename T>

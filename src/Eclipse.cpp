@@ -394,6 +394,14 @@ Month StrMo(string mon) {
 	}
 }
 
+int Eclipse::getKey() const {
+	if(!parts->get(0).empty()) {
+		return stoi(parts->get(0));
+	} else {
+		return -1;
+	}
+}
+
 //Search by binary
 void ColumnSearchBinary(Tarray<Eclipse>& eclipses, string searchTerm, int colNum, int& min, int& max) {
 	int lmin; int lmax; int lmid;
