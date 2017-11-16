@@ -19,6 +19,7 @@ using namespace std;
 template<typename T>
 class AbstractTList {
 public:
+	//virtual ~AbstractTList() = 0;
 	virtual T& item() = 0;
 	virtual AbstractTList<T>* next() = 0;
 	virtual bool isEmpty() = 0;
@@ -490,14 +491,16 @@ std::ostream& operator<< (std::ostream& os, const TList<T>* headList) {
 		return os;
 	}
 
-	do {
-		os << *(temp->_item);
-		os << endl;
-		temp = temp->_next;
+	//do {
+	for(int i = 0; i < *temp->_size; i++) {
 		if(temp != NULL) {
-			//os << ",";
+			os << *(temp->_item);
+			os << endl;
 		}
-	} while(temp != NULL);
+		if (temp->_next != NULL) {
+			temp = temp->_next;
+		}
+	}// while(temp != NULL);
 	//os << ">";
 	return os;
 }

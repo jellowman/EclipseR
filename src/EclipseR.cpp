@@ -387,7 +387,7 @@ bool ReadFileDel(ifstream& inFS, TList<Eclipse>* eclipseList, Tarray<string> *he
 		}
 
 	} //END while loop
-	cout << eclipseList << endl;
+	//cout << eclipseList << endl;
 	bool hasData = (eclipseList->size() > 0) ? true : false;
 	return hasData;
 } //END ReadFileDEL method
