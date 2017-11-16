@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <string>
+#include "Tarray.h"
 using namespace std;
 
 template<typename T>
@@ -47,9 +48,12 @@ protected:
 public:
 	TList();
 	TList(T& item);
+	TList(int* size);
 	TList(T& item, TList<T>* next, int* size);
 	~TList();
 	TList(const TList<T>& other);
+	TList(const Tarray<T>& otherArray);
+	Tarray<T>& toArray();
 	void operator=(const TList<T>& other);
 	T& item();
 	TList<T>* next();
@@ -57,6 +61,7 @@ public:
 	void add(T& newT);//
 	TList<T>* setNext(TList<T>* nextT);//
 	void insertAt(T& newT, int pos);//
+	int insertSorted(T& newT);
 	T& getAt(int pos);//
 	int find(T& key);//
 	T remove();
@@ -72,6 +77,13 @@ TList<T>::TList() {
 	_item = NULL;
 	_next = NULL;
 	_size = new int(0);
+}
+
+template<typename T>
+TList<T>::TList(int* size) {
+	_item = NULL;
+	_next = NULL;
+	_size = size;
 }
 
 //Creates a new linked list with a copy of the same object
@@ -166,6 +178,36 @@ TList<T>::TList(const TList<T>& other) {
 	}
 }
 
+//Copies elements from a Tarray (Array List) into
+//A Linked List
+template<typename T>
+TList<T>::TList(const Tarray<T>& otherArray) {
+	_item = NULL;
+	_next = NULL;
+	_size = new int(0);
+
+	for(int i = 0; i < otherArray.size(); i++) {
+		//temp->_item = otherArray.get(i);
+		//temp->_next = new TList<T>(_size);
+
+		//temp = temp->_next;
+		insertSorted(*(new T(otherArray.get(i))));
+	}
+}
+
+template<typename T>
+Tarray<T>& TList<T>::toArray() {
+	Tarray<T>* newArray = new Tarray<T>();
+	TList<T>* temp = this;
+
+	for(int i = 0; i < this->size(); i++) {
+		newArray->add(*(temp->_item));
+		temp = temp->_next;
+	}
+
+	return *newArray;
+}
+
 //Performs shallow assignment
 template<typename T>
 void TList<T>::operator=(const TList<T>& other) {
@@ -229,8 +271,6 @@ bool TList<T>::isEmpty() {
  void TList<T>::add(T& newT) {
 	 if(_item == NULL) {
 		 _item = new T(newT);
-		 cout << "Added item to empty list" << endl;
-		 cout << "Item is: " << *_item << endl;
 	 } else {
 		 //Store this current linked list object's contents
 		 TList<T>* oldList = new TList<T>(*_item, _next, _size);
@@ -279,6 +319,39 @@ void TList<T>::insertAt(T& newT, int pos) {
 	if(!toEnd) {
 		temp->add(newT);
 		//Adds 1 to size in add()
+	}
+}
+
+template<typename T>
+int TList<T>::insertSorted(T& newT) {
+	TList<T>* temp = this;
+	int pos = -1;
+	if(_item == NULL) {
+		add(newT);
+		return 0;
+	} else {
+		for(int i = 0; i < this->size(); i++) {
+			if(temp->isEmpty()) {
+				throw LinkedListNotFound();
+			} else {
+				//cout << "Comparing " << newT << " to " << *(temp->_item) << endl;
+				if(newT.compare(*(temp->_item)) > 0) {
+					if(temp->_next == NULL) {
+						temp->_next = new TList<T>(newT);
+						temp->_next->_size = temp->_size;
+						*(temp->_size) = *(temp->_size) + 1;
+						return i+1;
+					} else {
+						temp = temp->_next;
+					}
+				} else {
+					temp->add(newT);
+					//size incremented in method
+					return i;
+				}
+			}
+		}
+		return pos;
 	}
 }
 
@@ -411,15 +484,21 @@ T TList<T>::removeAt(int pos) {
 template<typename T>
 std::ostream& operator<< (std::ostream& os, const TList<T>* headList) {
 	const TList<T>* temp = headList;
-	os << "<";
+	//os << "<";
+	if(temp->_item == NULL) {
+		//os << ">";
+		return os;
+	}
+
 	do {
 		os << *(temp->_item);
+		os << endl;
 		temp = temp->_next;
 		if(temp != NULL) {
-			os << ",";
+			//os << ",";
 		}
 	} while(temp != NULL);
-	os << ">";
+	//os << ">";
 	return os;
 }
 

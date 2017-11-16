@@ -19,7 +19,7 @@ public:
 	~Eclipse();
 	Eclipse(string name);
 	Eclipse(const Eclipse& otherEcl);
-	Eclipse& operator=(const Eclipse& otherEcl);
+	void operator=(const Eclipse& otherEcl);
 	bool operator==(const Eclipse& otherEcl);
 	string getName();
 	string getCol(int i) const;

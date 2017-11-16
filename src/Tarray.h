@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <string>
+
 using namespace std;
 
 //Template class to hold functions for handling arrays
@@ -20,18 +21,19 @@ public:
 	Tarray(int initSize);
 	Tarray(const Tarray<T>& copyArray);
 	~Tarray();
-	Tarray<T>& operator=(const Tarray<T>& otherArray);
+	void operator=(const Tarray<T>& otherArray);
 	void add(T& newT);
 	void addCopy(T newT);
 	void addAt(T& newT, int index);
 	void removeDel(int index);
 	void removeAt(int index);
-	T& get(int i);
+	T& get(int i) const;
+	T getCopy(int i) const;
 	//T& operator[](int i);
 	void replaceAt(T& value, int index);
 	void swap(int p1, int p2);
 	bool hasValue(int index);
-	int size();
+	int size() const;
 	void sort();
 	int DEBUG_ACTUAL_SIZE();
 	template<typename U> friend std::ostream& operator<< (std::ostream& os, const Tarray<U>& thisObject);
@@ -62,7 +64,9 @@ Tarray<T>::Tarray() {
 //Default Destructor
 template<typename T>
 Tarray<T>::~Tarray() {
-	delete [] array;
+	if(array != NULL) {
+		delete [] array;
+	}
 	return;
 }
 
@@ -88,14 +92,15 @@ Tarray<T>::Tarray(const Tarray<T>& copyArray) {
 	array = new T[copyArray.currentSize];
 
 	for(int i = 0; i < this->nextOpenSlot; i++) {
-		array[i] = (copyArray.array)[i];
+		T* temp = new T((copyArray.array)[i]);
+		array[i] = *temp;
 	}
 	return;
 }
 
 //Copy overloader to deep copy
 template<typename T>
-Tarray<T>& Tarray<T>::operator=(const Tarray<T>& otherArray) {
+void Tarray<T>::operator=(const Tarray<T>& otherArray) {
 	delete [] array;
 	array = new T[otherArray.currentSize];
 	//Copy all elements in internal array to the other Tarray
@@ -105,7 +110,6 @@ Tarray<T>& Tarray<T>::operator=(const Tarray<T>& otherArray) {
 	//*array = *(otherArray.array);
 	currentSize = otherArray.currentSize;
 	nextOpenSlot = otherArray.nextOpenSlot;
-	return *this;
 }
 
 //Basic add function by reference
@@ -201,7 +205,7 @@ template<typename T>
 void Tarray<T>::removeDel(int index) {
 	if(index < nextOpenSlot) {
 		//Delete and move pointers
-		delete *array[index];
+		delete array[index];
 		for(int i = index; i < nextOpenSlot - 1; i++) {
 			array[i] = array[i+1];
 		}
@@ -253,7 +257,18 @@ void Tarray<T>::removeAt(int index) {
 
 //Returns OBJECT T
 template<typename T>
-T& Tarray<T>::get(int i) {
+T& Tarray<T>::get(int i) const{
+	if(i >= nextOpenSlot) {
+			cerr << "INVALID ACCESS RANGE: Size specified: " << i << ". Max size: "
+							<< nextOpenSlot-1 << endl;
+			exit(1);
+		} else {
+			return array[i];
+		}
+}
+
+template<typename T>
+T Tarray<T>::getCopy(int i) const {
 	if(i >= nextOpenSlot) {
 			cerr << "INVALID ACCESS RANGE: Size specified: " << i << ". Max size: "
 							<< nextOpenSlot-1 << endl;
@@ -279,7 +294,8 @@ void Tarray<T>::replaceAt(T& value, int index) {
 		return;
 	} else {
 	//Calls =overloader for T type, delete is handled there
-	array[index] = value;
+	T* temp = new T(value);
+	array[index] = *temp;
 	return;
 	}
 }
@@ -287,8 +303,7 @@ void Tarray<T>::replaceAt(T& value, int index) {
 //Swap values in the array
 template<typename T>
 void Tarray<T>::swap(int p1, int p2) {
-	T *temp;
-	temp = array[p1];
+	T *temp = new T(array[p1]);
 	array[p1] = array[p2];
 	array[p2] = *temp;
 }
@@ -305,7 +320,7 @@ bool Tarray<T>::hasValue(int index) {
 
 //Returns effective size of dynamic array (not actual internal array size)
 template<typename T>
-int Tarray<T>::size() {
+int Tarray<T>::size() const{
 	return nextOpenSlot;
 }
 

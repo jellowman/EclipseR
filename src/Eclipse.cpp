@@ -16,39 +16,68 @@ Eclipse::Eclipse() {
 }
 
 Eclipse::~Eclipse() {
+	if(name != NULL) {
 	delete name;
+	name = NULL;
+	}
+	if(parts != NULL) {
 	delete parts;
+	parts = NULL;
+	}
 }
 
 Eclipse::Eclipse(string name) {
-	this->name = new string;
-	*(this->name) = name;
+	this->name = new string(name);
+	//*(this->name) = name;
 	parts = new Tarray<string>(18);
 	return;
 }
 
 //Copy constructor
 Eclipse::Eclipse(const Eclipse& otherEclipse) {
-	name = new string;
-	name->assign(*(otherEclipse.name));
-	parts = new Tarray<string>(*(otherEclipse.parts));
+	name = new string();
+	if(otherEclipse.name == NULL) {
+		*name = "";
+	} else {
+		name = new string(*(otherEclipse.name));
+	}
+
+	if(otherEclipse.parts == NULL) {
+		parts = new Tarray<string>(18);
+	} else {
+		parts = new Tarray<string>(*(otherEclipse.parts));
+	}
 	return;
 }
 
 //Equals assignment operator
-Eclipse& Eclipse::operator=(const Eclipse& otherEclipse) {
-	//delete name;
-	//delete parts;
-	this->name = otherEclipse.name;
-	this->parts = otherEclipse.parts;
-	return *this;
+void Eclipse::operator=(const Eclipse& otherEclipse) {
+	if(name != NULL) {
+		delete name;
+	}
+	if(parts != NULL) {
+		delete parts;
+	}
+	if(otherEclipse.name == NULL) {
+		this->name = NULL;
+	} else {
+		this->name = otherEclipse.name;
+	}
+	if(otherEclipse.parts == NULL) {
+		this->parts = NULL;
+	} else {
+		this->parts = otherEclipse.parts;
+	}
 }
 void Eclipse::setName(string newName) {
 	name->assign(newName);
 }
 
 void Eclipse::setParts(const Tarray<string>& otherParts) {
-	delete this->parts;
+	if(parts != NULL) {
+		delete this->parts;
+		parts = NULL;
+	}
 	parts = new Tarray<string>(otherParts);
 	return;
 }
@@ -326,13 +355,11 @@ void ColumnSort(Tarray<Eclipse>& eclipses, int colNum) {
 		//cout << "inserting at: " << insertAt << endl;
 
 		//Move elements
-		Eclipse *temp = new Eclipse();
-		*temp = eclipses.get(i);
+		Eclipse* temp = new Eclipse(eclipses.get(i));
 		for(int j = i; j > insertAt; j--) {
 			eclipses.replaceAt(eclipses.get(j-1), j);
 		}
 		eclipses.replaceAt(*temp, insertAt);
-		temp = 0;
 	} //End Loop for element
 }
 

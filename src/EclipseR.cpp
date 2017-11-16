@@ -19,7 +19,7 @@ using namespace std;
 int main() {
 	//Unit testing
 	//TestArrayTemplate();
-	TestLinkedList();
+	//TestLinkedList();
 
 	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
 	bool eclipseID[20000];
@@ -30,8 +30,11 @@ int main() {
 		eclipseID[i] = false;
 	}
 
-	//Keep track of eclipses (Array of Eclispes)
-	Tarray<Eclipse> *eclipses = new Tarray<Eclipse>(10);
+	//Keep track of eclipses (Linked List of Eclipses)
+	//Array List will be used for sorting
+	//Tarray<Eclipse> *eclipses = new Tarray<Eclipse>(10);
+	TList<Eclipse>* eclipseList = new TList<Eclipse>();
+
 	//Hold trash at beginning of file
 	Tarray<string> *header = new Tarray<string>();
 
@@ -55,11 +58,15 @@ int main() {
 				//Read file contents
 				delete header;
 				header = new Tarray<string>(10);
-				bool hasData = ReadFile(inFS, eclipses, header, dataTally, validTally);
+				//------NEW IN EclipseR 2.0--------
+				//Reads in data into a linked list
+				//---------------------------------
+				bool hasData = ReadFile(inFS, eclipseList, header, dataTally, validTally);
 				//Data has been read at least once
 				if(hasData) {
 					anyData = true;
 				}
+				exit = true;
 			}
 
 			inFS.close();
@@ -72,11 +79,15 @@ int main() {
 		return 0;
 	}
 
+	//Assign read-in data file to Array List from the Linked List of Eclipses.
+	Tarray<Eclipse>* eclipses = new Tarray<Eclipse>(eclipseList->toArray());
+
 	//Enter data manipulation loop
 	int sortedBy = -1;
 	exit = false;
 	do {
-		cout << "Choose to (O)utput, (S)ort, (F)ind, or (Q)uit" << endl;
+		cout << "Choose to (O)utput, (S)ort, (F)ind, or (Q)uit" << endl
+				<< "(M)erge, (P)urge, (C)[Print linked list]" << endl;
 		string userChoice;
 		getline(cin, userChoice);
 		char firstLetter = userChoice[0];
@@ -97,6 +108,25 @@ int main() {
 			//Find data
 			FindValues(eclipses, sortedBy, header);
 			break;
+		case 'm':
+		case 'M':
+			//Merge new data from new file
+			MergeData(eclipseList, dataTally, validTally);
+			delete eclipses;
+			eclipses = new Tarray<Eclipse>(eclipseList->toArray());
+			break;
+		case 'p':
+		case 'P':
+			//Purge data specified in file
+			PurgeData(eclipseList, dataTally, validTally);
+			delete eclipses;
+			eclipses = new Tarray<Eclipse>(eclipseList->toArray());
+			break;
+		case 'c':
+		case 'C':
+			//Print out Linked List to std output
+			cout << eclipseList << endl;
+			break;
 		case 'q':
 		case 'Q':
 			//Quit Program
@@ -113,7 +143,7 @@ int main() {
 }
 
 //Reads in
-bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, Tarray<string> *header, int& dataTally, int& validTally) {
+bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *header, int& dataTally, int& validTally) {
 
 	//bool eclipseID[20000];
 	//Variable used to hold next line from the eclipse data text file
@@ -202,27 +232,152 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, Tarray<string> *header,
 		//Iterate through eclipses to compare idNums
 		bool uniqueID = true;
 		int indexOfDuplicate = 0;
-		for(int i = 0; i < eclipses->size(); i++) {
+		Eclipse *newEclipse = new Eclipse();
+		newEclipse->setParts(*columnStrings);
+		indexOfDuplicate = eclipseList->find(*newEclipse);
+		/*for(int i = 0; i < eclipseList->size(); i++) {
 			if(idNum == eclipses->get(i).getID()) {
 				uniqueID = false;
 				indexOfDuplicate = i;
 			}
-		}
-		if(!uniqueID) { //Duplicate ID found, replace
+		}*/
+		if(indexOfDuplicate != -1) { //Duplicate ID found, replace
 			cerr << "Error in data row " << lineNum << ": Duplicate catalog number "
 					<< idNum << "." << endl;
 
-			Eclipse *newEclipse = new Eclipse();
-			newEclipse->setParts(*columnStrings);
-			eclipses->replaceAt(*newEclipse, indexOfDuplicate);
+			//Eclipse *newEclipse = new Eclipse();
+			//newEclipse->setParts(*columnStrings);
+			//eclipseList->removeAt(indexOfDuplicate);
+			//eclipseList->insertSorted(*newEclipse);
+			Eclipse dupEclipse = eclipseList->getAt(indexOfDuplicate);
+			dupEclipse = *(newEclipse);
 		} else {
 			//Indicate an ID has been used
 			//eclipseID[idNum] = true;
 
 			//Add to eclipse array
-			Eclipse *newEclipse = new Eclipse();
-			newEclipse->setParts(*columnStrings);
-			eclipses->add(*newEclipse);
+			//Eclipse *newEclipse = new Eclipse();
+			//newEclipse->setParts(*columnStrings);
+			eclipseList->insertSorted(*newEclipse);
+		}
+		if(!inFS.good()) //DOES NOT WORK, attempt to break out if end of file is reached
+		{
+			cerr << "Standard input not good" << endl;
+			break;
+		}
+
+	} //END while loop
+
+	bool hasData = (eclipseList->size() > 0) ? true : false;
+	return hasData;
+} //END ReadFile method
+
+bool ReadFileDel(ifstream& inFS, TList<Eclipse>* eclipseList, Tarray<string> *header) {
+	//bool eclipseID[20000];
+	//Variable used to hold next line from the eclipse data text file
+	string nextLine;
+	//Keeps track of the line number from input file, not including header lines
+	int lineNum = 0;
+
+	//Read past the "junk lines" at the beginning of the file
+	for(int i = 0; i < 10; i++) {
+		getline(inFS, nextLine);
+		header->add(nextLine);
+		//lineNum++;
+	}
+
+	//Loop through input file until the end of file is reached
+	while(getline(inFS, nextLine)) {
+	//while(lineNum < 26) {
+		//getline(inFS, nextLine);
+		lineNum++;
+		//dataTally++;
+		//string array to hold individual columns from file
+		Tarray<string> *columnStrings = new Tarray<string>();
+
+		//Read nextLine, put parts into columns
+		int numCols = ColumnSplitter(columnStrings, nextLine);
+
+		//Begin error checking content of lines
+		//Hold type of eclipse
+		bool isBad = false;
+		int eclipseType = -1;
+
+		//Check for correct # of columns based on eclipse type
+		if ((columnStrings->get(9)).at(0) == 'P') {
+			//Set eclipse to partial type
+			eclipseType = 0;
+			if(numCols != 16) {
+				cerr << "Error in data row " << lineNum << ": " << numCols <<
+						" columns found. Should be 16." << endl;
+				isBad = true;
+				continue;
+			}
+		} else {
+			//Set eclipse type to 'other'
+			eclipseType = 1;
+			if(numCols != 18) {
+				cerr << "Error in data row " << lineNum << ": " << numCols <<
+						" columns found. Should be 18." << endl;
+				isBad = true;
+				continue;
+			}
+		}
+		//Test to see if Integer columns have integers
+		switch(eclipseType) {
+		case 1:
+			//Check if column 17 is integer
+			isBad = IsColumnNumber(columnStrings, 17, true, lineNum) || isBad;
+			//intentionally no break
+		case 0:
+			//Check if columns 1,2,3,5,7,8,9,15,and 16 are Integers
+			isBad = IsColumnNumber(columnStrings, 1, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 2, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 3, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 5, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 7, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 8, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 9, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 15, true, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 16, true, lineNum) || isBad;
+
+			//Check if 11 and 12 are decimals
+			isBad = IsColumnNumber(columnStrings, 11, false, lineNum) || isBad;
+			isBad = IsColumnNumber(columnStrings, 12, false, lineNum) || isBad;
+			break;
+		default:
+			break;
+		}
+
+		//Break out to read next line if any number formatting failed
+		if(isBad)
+			continue;
+
+		//validTally++;
+		//Check for unique catalog number
+		int idNum = 0;
+		idNum = stoi(columnStrings->get(0));
+		//Iterate through eclipses to compare idNums
+		bool uniqueID = true;
+		int indexOfDuplicate = 0;
+		Eclipse *newEclipse = new Eclipse();
+		newEclipse->setParts(*columnStrings);
+		indexOfDuplicate = eclipseList->find(*newEclipse);
+		/*for(int i = 0; i < eclipseList->size(); i++) {
+			if(idNum == eclipses->get(i).getID()) {
+				uniqueID = false;
+				indexOfDuplicate = i;
+			}
+		}*/
+		if(indexOfDuplicate != -1) { //Duplicate ID found, remove from linked list
+			cerr << "Error in data row " << lineNum << ": Duplicate catalog number "
+					<< idNum << "." << endl;
+
+			//Eclipse *newEclipse = new Eclipse();
+			//newEclipse->setParts(*columnStrings);
+			//eclipseList->removeAt(indexOfDuplicate);
+			//eclipseList->insertSorted(*newEclipse);
+			eclipseList->removeAt(indexOfDuplicate);
 		}
 
 		if(!inFS.good()) //DOES NOT WORK, attempt to break out if end of file is reached
@@ -232,11 +387,60 @@ bool ReadFile(ifstream& inFS, Tarray<Eclipse> *eclipses, Tarray<string> *header,
 		}
 
 	} //END while loop
-
-	bool hasData = (eclipses->size() > 0) ? true : false;
+	cout << eclipseList << endl;
+	bool hasData = (eclipseList->size() > 0) ? true : false;
 	return hasData;
-} //END ReadFile method
+} //END ReadFileDEL method
 
+void MergeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally) {
+	cout << "Enter the name of an eclipse data file." << endl;
+	string fileName;
+	getline(cin, fileName);
+
+	if(!fileName.empty()) {
+		ifstream inFS;
+		inFS.open(fileName);
+		if(!inFS.is_open()) {
+			cout << "File is not available." << endl;
+		} else {
+			//Read file contents
+			//delete header;
+			Tarray<string>* header = new Tarray<string>(10);
+			//------NEW IN EclipseR 2.0--------
+			//Reads in data into a linked list
+			//---------------------------------
+			ReadFile(inFS, eclipseList, header, dataTally, validTally);
+			//Data has been read at least once
+		}
+		inFS.close();
+	}
+}
+
+void PurgeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally) {
+	cout << "Enter the name of an eclipse data file." << endl;
+	string fileName;
+	getline(cin, fileName);
+
+	if(!fileName.empty()) {
+		ifstream inFS;
+		inFS.open(fileName);
+		if(!inFS.is_open()) {
+			cout << "File is not available." << endl;
+		} else {
+			//Read file contents
+			//delete header;
+			Tarray<string>* header = new Tarray<string>(10);
+			//------NEW IN EclipseR 2.0--------
+			//Reads in data into a linked list
+			//---------------------------------
+			ReadFileDel(inFS, eclipseList, header);
+			//Data has been read at least once
+		}
+		inFS.close();
+	}
+}
+
+//Output values from the array with the current sorting
 void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTally, int& validTally) {
 	cout << "Enter the name of the output file:" << endl;
 	string outFileName;
@@ -253,8 +457,7 @@ void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTa
 			outFile << header->get(i) << endl;
 		}
 		for(int i = 0; i < eclipses->size(); i++) {
-			Eclipse anEclipse = eclipses->get(i);
-			outFile << anEclipse << endl;
+			outFile << eclipses->get(i) << endl;
 		}
 		outFile << "Data lines read: " << dataTally << "; Valid eclipses read: " << validTally <<
 				"; Eclipses in memory: " << eclipses->size() << endl;
@@ -275,7 +478,6 @@ void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTa
 } //END OutputValues method
 
 void SortValues(Tarray<Eclipse>* eclipses, int& sortBy) {
-
 	cout << "Select a data field to sort from 1-18" << endl;
 	string nextLine;
 	getline(cin, nextLine);
@@ -628,10 +830,40 @@ void TestLinkedList() {
 	cout << "Now index of six is: " << eclipses->find(six) << endl;
 
 	eclipses->removeAt(eclipses->find(six));
-	eclipses->removeAt(eclipses->find(one));
+	eclipses->remove(one);
 
 	cout << eclipses << endl;
 	cout << eclipses->size() << endl;
+
+	delete eclipses;
+	eclipses = new TList<string>();
+
+	cout << "Insert sorting" << endl;
+	eclipses->insertSorted(four);
+	eclipses->insertSorted(three);
+	eclipses->insertSorted(six);
+	eclipses->insertSorted(two);
+	eclipses->insertSorted(*(new string("Apple")));
+	eclipses->insertSorted(*(new string("Zanny")));
+	cout << eclipses << endl;
+
+	Tarray<string>* anArray = new Tarray<string>(eclipses->toArray());
+	cout << "---Printing Array---" << endl;
+	cout << *anArray << endl;
+	cout << "---End Printing Array---" << endl;
+
+	anArray->removeAt(2);
+	anArray->removeAt(2);
+	anArray->add(six);
+	anArray->add(six);
+	delete eclipses;
+	eclipses = new TList<string>();
+	cout << "Empty eclipse: " << eclipses << endl;
+
+	eclipses = new TList<string>(*anArray);
+
+	cout << "Reformed Eclipses: " << endl;
+	cout << eclipses << endl;
 
 	cout << "End LL Testing:" << endl;
 }
