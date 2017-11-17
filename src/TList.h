@@ -48,8 +48,12 @@ class LinkedListNotFound : public LinkedListException { };
 template<typename T>
 class TList :public AbstractTList<T> {
 protected:
+	//Stores the abstract data type
 	T* _item;
+	//Points to the next link in the linked list
 	TList<T>* _next;
+	//Keeps track of the linked list size. Pointers of chains in the same linked list
+	//Will point to the same integer value, allowing for the size to be obtained from any link
 	int* _size;
 public:
 	TList();
@@ -201,6 +205,7 @@ TList<T>::TList(const Tarray<T>& otherArray) {
 	}
 }
 
+//Converts the data stored in the linked list into a resizeable array
 template<typename T>
 Tarray<T>& TList<T>::toArray() {
 	Tarray<T>* newArray = new Tarray<T>();
@@ -246,26 +251,31 @@ void TList<T>::operator=(const TList<T>& other) {
 		}
 }
 
+//Get data stored in chain
 template<typename T>
 T& TList<T>::item() {
 	return *_item;
 }
 
+//Get next link in the chain
 template<typename T>
 TList<T>* TList<T>::next() {
 	return _next;
 }
 
+//Return number of elements in Linked List
 template<typename T>
 int TList<T>::size() {
 	return *_size;
 }
 
+//Sets the size of the linked list
 template<typename T>
 void TList<T>::setSize(int* size) {
 	_size = size;
 }
 
+//Checks if the list is empty
 template<typename T>
 bool TList<T>::isEmpty() {
 	return (_item == NULL);
@@ -370,7 +380,7 @@ TList<T>* TList<T>::setNext(TList<T>* newTPointer) {
 	return oldNext;
 }
 
-
+//Gets data at a specified link in the chain
 template<typename T>
 T& TList<T>::getAt(int pos) {
 	/*if(pos == 0) {
@@ -400,6 +410,7 @@ T& TList<T>::getAt(int pos) {
 	return *(temp->_item);
 }
 
+//Returns the position of the data that matches the key
 template<typename T>
 int TList<T>::find(T& key) {
 	/*if(isEmpty()) {
@@ -430,6 +441,7 @@ int TList<T>::find(T& key) {
 	return -1;
 }
 
+//Removes item from the current chain, moves pointers from preceeding chain
 template<typename T>
 T TList<T>::remove() {
 	T temp = *_item;
@@ -457,6 +469,7 @@ T TList<T>::remove() {
 	return temp;
 }
 
+//Removes an item that matches the key
 template<typename T>
 T TList<T>::remove(T& key) {
 	if(isEmpty()) {
@@ -472,6 +485,7 @@ T TList<T>::remove(T& key) {
 	}
 }
 
+//Removes an item at a specified postion
 template<typename T>
 T TList<T>::removeAt(int pos) {
 	if(isEmpty()) {

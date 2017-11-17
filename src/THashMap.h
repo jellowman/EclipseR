@@ -1,8 +1,10 @@
 /*
  * THashMap.h
- * A generic linked hash map
+ * A generic linked hash map with a static number of buckets and integer keys
+ * Note: Generic item must implement a getKey() function that returns an int
  * Ideas for implementation come from
  * Dr. Radhakrishnan's Data Structures Slides
+ * COLLISION METHOD: Double Hashing
  *  Created on: Nov 15, 2017
  *      Author: trevorfisher
  */
@@ -35,15 +37,20 @@ public:
 	template<typename U> friend std::ostream& operator<< (std::ostream& os, const THashMap<U>* thisObject);
 
 private:
-	//Tarray<TList<T> >* _hashTable;
+	//Contains pointers an array of abstract data type
 	T** _table;
+	//Maintains the order of elements inserted into the hashmap
 	TList<T>* _mapList;
+	//The number of buckets for the hashmap
 	int _size;
+	//Determines how many extra buckets will be supplied to avoid inserting into a near-full hashmap
+	static constexpr double EXTRA_BUCKET_MULTIPLIER = 1.3;
 
 	int hashFunction(int key) const;
 	int hashFunction2(int key) const;
 };
 
+//Null (Default) constructor
 template<typename T>
 THashMap<T>::THashMap() {
 	//_hashTable = new Tarray<TList<T> >();
@@ -52,6 +59,7 @@ THashMap<T>::THashMap() {
 	_size = 0;
 }
 
+//Standard delete
 template<typename T>
 THashMap<T>::~THashMap() {
 	/*if(_hashTable != NULL) {
@@ -75,10 +83,11 @@ THashMap<T>::~THashMap() {
 	}
 }
 
+//Initializes number of buckets in the hashmap to size
 template<typename T>
 THashMap<T>::THashMap(int size) {
 	//_hashTable = new Tarray<TList<T> >(size);
-	_size = (size*1.25);
+	_size = (size*EXTRA_BUCKET_MULTIPLIER);
 	_table = new T*[_size];
 	for(int i = 0; i < _size; i++) {
 		_table[i] = nullptr;
@@ -86,6 +95,7 @@ THashMap<T>::THashMap(int size) {
 	_mapList = new TList<T>();
 }
 
+//Standard copy constructor
 template<typename T>
 THashMap<T>::THashMap(const THashMap<T>& otherMap) {
 	/*if(otherMap._hashTable == NULL) {
@@ -118,6 +128,7 @@ THashMap<T>::THashMap(const THashMap<T>& otherMap) {
 	}
 }
 
+//Creates a hashmap from a dynamic array
 template<typename T>
 THashMap<T>::THashMap(const Tarray<T>& otherArray) {
 	_size = otherArray.size()*1.25;
@@ -133,6 +144,7 @@ THashMap<T>::THashMap(const Tarray<T>& otherArray) {
 	}
 }
 
+//Standard assignment operator
 template<typename T>
 void THashMap<T>::operator=(const THashMap<T>& otherMap) {
 	/*if(_hashTable != NULL) {
@@ -168,6 +180,7 @@ void THashMap<T>::operator=(const THashMap<T>& otherMap) {
 	}
 }
 
+//Adds an element to the hashmap based on its key, and stores to the end of the internal linked list
 template<typename T>
 void THashMap<T>::add(T& obj) {
 	int key = obj.getKey();
@@ -195,6 +208,7 @@ void THashMap<T>::add(T& obj) {
 	_mapList->insertAt(obj, _mapList->size());
 }
 
+//Removes an object based on its key
 template<typename T>
 T THashMap<T>::remove(T& obj) {
 	int key = obj.getKey();
@@ -227,6 +241,7 @@ T THashMap<T>::remove(T& obj) {
 	return toRem;
 }
 
+//Finds an item that matches the key
 template<typename T>
 T THashMap<T>::find(int key) const{
 	int hashVal = hashFunction(key);
@@ -246,20 +261,22 @@ T THashMap<T>::find(int key) const{
 	return found;
 }
 
+//Finds an item that has the same key as obj
 template<typename T>
 T THashMap<T>::find(const T& obj) const{
 	return find(obj.getKey());
 }
 
-
+//Primary Hash Function
+//-Simple modulus of the integer key
 template<typename T>
 int THashMap<T>::hashFunction(int key) const{
 	return key % _size;
 }
 
 //Double hashing implementation to add an increment to search for unoccupied bin.
-//Ensures that the offset provided is not a multiple of the number of buckets, allowing for
-//traversal of all possible buckets
+//Ensures that the offset provided is not a multiple of the number of buckets
+//and a least common multiple of 1, allowing for traversal of all possible buckets
 template<typename T>
 int THashMap<T>::hashFunction2(int key) const{
 	int key2 = (key % (_size/3)) + 1;
@@ -274,16 +291,19 @@ int THashMap<T>::hashFunction2(int key) const{
 	return key2;
 }
 
+//Return the number of buckets
 template<typename T>
 int THashMap<T>::size() const {
 	return _size;
 }
 
+//Returns the current number of stored elements in the hashmap
 template<typename T>
 int THashMap<T>::numElements() const {
 	return _mapList->size();
 }
 
+//Returns
 template<typename T>
 double THashMap<T>::load() const {
 	return static_cast<double>(numElements()) / static_cast<double>(_size);

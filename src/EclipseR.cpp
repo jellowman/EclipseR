@@ -90,7 +90,8 @@ int main() {
 	exit = false;
 	do {
 		cout << "Choose to (O)utput, (S)ort, (F)ind, or (Q)uit" << endl
-				<< "(M)erge, (P)urge, (C)[Print linked list]" << endl;
+				<< "(M)erge, (P)urge, (C)[Print linked list]" << endl
+				<< "(L)[Print In-Order insert of HashMap], (H)ashMap Structure" << endl;
 		string userChoice;
 		getline(cin, userChoice);
 		char firstLetter = userChoice[0];
@@ -136,10 +137,12 @@ int main() {
 			break;
 		case 'l':
 		case 'L':
+			//Print out In-Order Insertion into the hashmap
 			eMap->displayList(cout);
 			break;
 		case 'h':
 		case 'H':
+			//Print out the debut hashmap structure
 			cout << eMap;
 			break;
 		case 'q':
@@ -493,6 +496,8 @@ void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTa
 } //END OutputValues method
 
 void SortValues(Tarray<Eclipse>* eclipses, int& sortBy) {
+	//Still sorts the array for data field 1, but uses hashmap to search ID
+
 	cout << "Select a data field to sort from 1-18" << endl;
 	string nextLine;
 	getline(cin, nextLine);
@@ -535,6 +540,7 @@ void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy, Tarray<string>* header
 				return;
 			}
 		}
+		//---NEW FOR ECLIPSE 3.0------
 		//Search for an ID using the hash map
 		else if (colNum == 1){
 			cout << "Pick an eclipse ID to search for." << endl;
