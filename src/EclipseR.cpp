@@ -13,6 +13,7 @@
 #include "Tarray.h"
 #include "Eclipse.h"
 #include "TList.h"
+#include "THashMap.h"
 using namespace std;
 
 
@@ -22,13 +23,13 @@ int main() {
 	//TestLinkedList();
 
 	//Used to hold unique eclipse IDS, can't use Tarray until it has sorting implemented
-	bool eclipseID[20000];
+	/*bool eclipseID[20000];
 
 	//Instantiate array holding used IDs to false
 	for(int i = 0; i < 20000; i++)
 	{
 		eclipseID[i] = false;
-	}
+	}*/
 
 	//Keep track of eclipses (Linked List of Eclipses)
 	//Array List will be used for sorting
@@ -81,6 +82,8 @@ int main() {
 
 	//Assign read-in data file to Array List from the Linked List of Eclipses.
 	Tarray<Eclipse>* eclipses = new Tarray<Eclipse>(eclipseList->toArray());
+	THashMap<Eclipse>* eMap = new THashMap<Eclipse>(*eclipses);
+
 
 	//Enter data manipulation loop
 	int sortedBy = -1;
@@ -106,26 +109,38 @@ int main() {
 		case 'f':
 		case 'F':
 			//Find data
-			FindValues(eclipses, sortedBy, header);
+			FindValues(eclipses, sortedBy, header, eMap);
 			break;
 		case 'm':
 		case 'M':
 			//Merge new data from new file
 			MergeData(eclipseList, dataTally, validTally);
 			delete eclipses;
+			delete eMap;
 			eclipses = new Tarray<Eclipse>(eclipseList->toArray());
+			eMap = new THashMap<Eclipse>(*eclipses);
 			break;
 		case 'p':
 		case 'P':
 			//Purge data specified in file
 			PurgeData(eclipseList, dataTally, validTally);
 			delete eclipses;
+			delete eMap;
 			eclipses = new Tarray<Eclipse>(eclipseList->toArray());
+			eMap = new THashMap<Eclipse>(*eclipses);
 			break;
 		case 'c':
 		case 'C':
 			//Print out Linked List to std output
 			cout << eclipseList << endl;
+			break;
+		case 'l':
+		case 'L':
+			eMap->displayList(cout);
+			break;
+		case 'h':
+		case 'H':
+			cout << eMap;
 			break;
 		case 'q':
 		case 'Q':
@@ -230,7 +245,7 @@ bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *heade
 		int idNum = 0;
 		idNum = stoi(columnStrings->get(0));
 		//Iterate through eclipses to compare idNums
-		bool uniqueID = true;
+		//bool uniqueID = true;
 		int indexOfDuplicate = 0;
 		Eclipse *newEclipse = new Eclipse();
 		newEclipse->setParts(*columnStrings);
@@ -358,7 +373,7 @@ bool ReadFileDel(ifstream& inFS, TList<Eclipse>* eclipseList, Tarray<string> *he
 		int idNum = 0;
 		idNum = stoi(columnStrings->get(0));
 		//Iterate through eclipses to compare idNums
-		bool uniqueID = true;
+		//bool uniqueID = true;
 		int indexOfDuplicate = 0;
 		Eclipse *newEclipse = new Eclipse();
 		newEclipse->setParts(*columnStrings);
@@ -494,7 +509,7 @@ void SortValues(Tarray<Eclipse>* eclipses, int& sortBy) {
 	}
 }
 
-void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy, Tarray<string>* header) {
+void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy, Tarray<string>* header, THashMap<Eclipse>* eMap) {
 
 	cout<< "Select a data field to find from 1-18" << endl;
 	string nextLine;
@@ -519,6 +534,22 @@ void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy, Tarray<string>* header
 				cout << "Invalid month specified" << endl;
 				return;
 			}
+		}
+		//Search for an ID using the hash map
+		else if (colNum == 1){
+			cout << "Pick an eclipse ID to search for." << endl;
+			getline(cin, searchTerm);
+
+			//Print out header
+			for(int i = 0; i < header->size(); i++) {
+				cout << header->get(i) << endl;
+			}
+			Eclipse found = eMap->find(stoi(searchTerm));
+			if(!found.isEmpty()) {
+				cout << found << endl;
+				cout << "Eclipses found: 1" << endl;
+			}
+			return;
 		}
 		//Get any value to search for
 		else {
@@ -558,6 +589,8 @@ void FindValues(Tarray<Eclipse>* eclipses, int& sortedBy, Tarray<string>* header
 			}
 			cout << "Eclipses found: " << matches->size() << endl;
 		}
+
+		delete matches;
 	} catch(invalid_argument& ar) {
 
 	}

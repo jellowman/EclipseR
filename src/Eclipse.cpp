@@ -12,7 +12,7 @@
 
 Eclipse::Eclipse() {
 	name = NULL;
-	parts = new Tarray<string>(18);
+	parts = NULL;
 }
 
 Eclipse::~Eclipse() {
@@ -29,7 +29,7 @@ Eclipse::~Eclipse() {
 Eclipse::Eclipse(string name) {
 	this->name = new string(name);
 	//*(this->name) = name;
-	parts = new Tarray<string>(18);
+	parts = NULL;
 	return;
 }
 
@@ -84,6 +84,17 @@ void Eclipse::setParts(const Tarray<string>& otherParts) {
 
 string Eclipse::getName() {
 	return *name;
+}
+
+bool Eclipse::isEmpty() const {
+	if(parts == NULL) {
+		return true;
+	}
+	if(parts->size() == 0) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 string Eclipse::getCol(int colNum) const{
@@ -300,16 +311,18 @@ int Eclipse::compareToStr(const string& term, int numCol) {
 
 std::ostream& operator << (ostream& os, const Eclipse& theEclipse) {
 	//os << *(theEclipse.parts);
-	os << setw(5) << right << theEclipse.parts->get(0) << setw(5) << theEclipse.parts->get(1);
-	os << setw(7) << theEclipse.parts->get(2) << setw(4) << theEclipse.parts->get(3);
-	os << setw(3) << theEclipse.parts->get(4) << setw(10) << theEclipse.parts->get(5);
-	os << setw(7) << theEclipse.parts->get(6) << setw(7) << theEclipse.parts->get(7);
-	os << setw(5) << theEclipse.parts->get(8) << setw(4) << theEclipse.parts->get(9);
-	os << setw(10) << theEclipse.parts->get(10) << setw(8) << theEclipse.parts->get(11);
-	os << setw(7) << theEclipse.parts->get(12) << setw(7) << theEclipse.parts->get(13);
-	os << setw(4) << theEclipse.parts->get(14) << setw(5) << theEclipse.parts->get(15);
-	if(theEclipse.parts->get(9).at(0) != 'P') {
-		os << setw(5) << theEclipse.parts->get(16) << setw(8) << theEclipse.parts->get(17);
+	if(!theEclipse.isEmpty()) {
+		os << setw(5) << right << theEclipse.parts->get(0) << setw(5) << theEclipse.parts->get(1);
+		os << setw(7) << theEclipse.parts->get(2) << setw(4) << theEclipse.parts->get(3);
+		os << setw(3) << theEclipse.parts->get(4) << setw(10) << theEclipse.parts->get(5);
+		os << setw(7) << theEclipse.parts->get(6) << setw(7) << theEclipse.parts->get(7);
+		os << setw(5) << theEclipse.parts->get(8) << setw(4) << theEclipse.parts->get(9);
+		os << setw(10) << theEclipse.parts->get(10) << setw(8) << theEclipse.parts->get(11);
+		os << setw(7) << theEclipse.parts->get(12) << setw(7) << theEclipse.parts->get(13);
+		os << setw(4) << theEclipse.parts->get(14) << setw(5) << theEclipse.parts->get(15);
+		if(theEclipse.parts->get(9).at(0) != 'P') {
+			os << setw(5) << theEclipse.parts->get(16) << setw(8) << theEclipse.parts->get(17);
+		}
 	}
 
 	return os;

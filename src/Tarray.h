@@ -66,6 +66,7 @@ template<typename T>
 Tarray<T>::~Tarray() {
 	if(array != NULL) {
 		delete [] array;
+		array = NULL;
 	}
 	return;
 }
@@ -101,13 +102,19 @@ Tarray<T>::Tarray(const Tarray<T>& copyArray) {
 //Copy overloader to deep copy
 template<typename T>
 void Tarray<T>::operator=(const Tarray<T>& otherArray) {
-	delete [] array;
-	array = new T[otherArray.currentSize];
-	//Copy all elements in internal array to the other Tarray
-	for(int i = 0; i < otherArray.nextOpenSlot; i++) {
-		array[i] = (otherArray.array)[i];
+	if(array != NULL) {
+		delete [] array;
 	}
-	//*array = *(otherArray.array);
+	//array = new T[otherArray.currentSize];
+	if(otherArray.array != NULL) {
+		array = otherArray.array;
+	} else {
+		array = NULL;
+	}
+	//Copy all elements in internal array to the other Tarray
+	/*for(int i = 0; i < otherArray.nextOpenSlot; i++) {
+		array[i] = (otherArray.array)[i];
+	}*/
 	currentSize = otherArray.currentSize;
 	nextOpenSlot = otherArray.nextOpenSlot;
 }

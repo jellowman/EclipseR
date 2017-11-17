@@ -23,6 +23,7 @@ public:
 	bool operator==(const Eclipse& otherEcl);
 	string getName();
 	string getCol(int i) const;
+	bool isEmpty() const;
 	int getID();
 	void setName(string newName);
 	void setParts(const Tarray<string>& otherParts);

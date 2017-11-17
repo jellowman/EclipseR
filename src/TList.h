@@ -19,7 +19,7 @@ using namespace std;
 template<typename T>
 class AbstractTList {
 public:
-	//virtual ~AbstractTList() = 0;
+	virtual ~AbstractTList();
 	virtual T& item() = 0;
 	virtual AbstractTList<T>* next() = 0;
 	virtual bool isEmpty() = 0;
@@ -34,6 +34,11 @@ public:
 	virtual int size() = 0;
 	//virtual void display(ostream& s);
 };
+
+template<typename T>
+AbstractTList<T>::~AbstractTList() {
+	//Intentionally left blank
+}
 
 class LinkedListException : public std::exception { };
 class LinkedListBounds : public LinkedListException { };

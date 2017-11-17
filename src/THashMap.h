@@ -22,17 +22,21 @@ public:
 	~THashMap();
 	THashMap(int size);
 	THashMap(const THashMap<T>& otherMap);
+	THashMap(const Tarray<T>& otherArray);
 	void operator=(const THashMap<T>& otherMap);
 	void add(T& obj);
 	T remove(T& obj);
 	T find(int key) const;
 	T find(const T& objToFind) const;
 	int size() const;
-	template<typename U> friend std::ostream& operator<< (std::ostream& os, const THashMap<U>& thisObject);
+	int numElements() const;
+	double load() const;
+	std::ostream& displayList(std::ostream& os);
+	template<typename U> friend std::ostream& operator<< (std::ostream& os, const THashMap<U>* thisObject);
 
 private:
 	//Tarray<TList<T> >* _hashTable;
-	T* _table;
+	T** _table;
 	TList<T>* _mapList;
 	int _size;
 
@@ -55,6 +59,12 @@ THashMap<T>::~THashMap() {
 		_hashTable = NULL;
 	}*/
 	if(_table != NULL) {
+		for(int i = 0; i < _size; i++) {
+			if(_table[i] != nullptr) {
+				delete _table[i];
+				_table[i] = nullptr;
+			}
+		}
 		delete [] _table;
 		_table = NULL;
 	}
@@ -69,9 +79,8 @@ template<typename T>
 THashMap<T>::THashMap(int size) {
 	//_hashTable = new Tarray<TList<T> >(size);
 	_size = (size*1.25);
-	_table = new T[_size];
+	_table = new T*[_size];
 	for(int i = 0; i < _size; i++) {
-		//_hashTable->add(new TList<T>());
 		_table[i] = nullptr;
 	}
 	_mapList = new TList<T>();
@@ -84,16 +93,43 @@ THashMap<T>::THashMap(const THashMap<T>& otherMap) {
 	} else {
 		this->_hashTable = new Tarray<TList <T> >(*otherMap._hashTable);
 	}*/
-	_size = otherMap.size();
-	_table = new T[otherMap._size];
-	for(int i = 0; i < _size; i++) {
-		_table[i] = new T(*(otherMap._table[i]));
+	if(otherMap.size() != NULL) {
+		_size = otherMap.size();
+	} else {
+		_size = NULL;
+	}
+	if(otherMap._table != NULL) {
+		_table = new T*[otherMap._size];
+		for(int i = 0; i < _size; i++) {
+			if(otherMap._table[i] != nullptr) {
+				_table[i] = new T(*(otherMap._table[i]));
+			} else {
+				_table[i] = nullptr;
+			}
+		}
+	} else {
+		_table = NULL;
 	}
 
 	if(otherMap._mapList == NULL) {
-		_mapList == new TList<T>();
+		_mapList == NULL;
 	} else {
 		_mapList = new TList<T>(*otherMap._mapList);
+	}
+}
+
+template<typename T>
+THashMap<T>::THashMap(const Tarray<T>& otherArray) {
+	_size = otherArray.size()*1.25;
+	_table = new T*[_size];
+	for(int i = 0; i < _size; i++) {
+		_table[i] = nullptr;
+	}
+
+	_mapList = new TList<T>();
+
+	for(int i = 0; i < otherArray.size(); i++) {
+		this->add(otherArray.get(i));
 	}
 }
 
@@ -104,6 +140,10 @@ void THashMap<T>::operator=(const THashMap<T>& otherMap) {
 	}*/
 
 	if(_table != NULL) {
+		for(int i = 0; i < _size; i++) {
+			delete _table[i];
+			_table[i] = nullptr;
+		}
 		delete [] _table;
 	}
 	if(_mapList != NULL) {
@@ -134,11 +174,16 @@ void THashMap<T>::add(T& obj) {
 	int hashVal = hashFunction(key);
 	int dubHash = hashFunction2(key);
 
+	//cout << "Key1: " << hashVal << endl;
+	//cout << "Key2: " << dubHash << endl;
+
 	//TList<T>* temp = _hashTable->get(hashVal);
 	//temp->add(obj);
 	//Add to keyed bucket, tries primary hash function, then resorts to double hashing
 	for(int i = 0; i < _size; i++) {
 		if(_table[hashVal] == nullptr) {
+			//cout << "Adding " << obj << " to index " << hashVal << endl;
+			//cout << "Took " << i+1 << " looks" << endl;
 			_table[hashVal] = new T(obj);
 			break;
 		} else {
@@ -146,7 +191,8 @@ void THashMap<T>::add(T& obj) {
 		}
 	}
 
-	_mapList->add(obj);
+	//Insert object into end of linked list
+	_mapList->insertAt(obj, _mapList->size());
 }
 
 template<typename T>
@@ -159,19 +205,19 @@ T THashMap<T>::remove(T& obj) {
 	//T toRem = matchingList->remove(obj);
 	T toRem = nullptr;
 
-	//Perform search to remove data
+	//Look at primary and double hash points to remove data
 	bool wasDeleted = false;
 	for(int i = 0; i < _size; i++) {
 		if(_table[hashVal] != nullptr) {
-			if(key == _table[hashVal].getKey()) {
+			if(key == _table[hashVal]->getKey()) {
 				delete _table[i];
-				_table[i] == nullptr;
+				_table[i] = nullptr;
 				wasDeleted = true;
 				break;
 			}
-		} else {
-			hashVal = (hashVal + dubHash) % _size;
 		}
+
+		hashVal = (hashVal + dubHash) % _size;
 	}
 
 	if(wasDeleted) { //Remove from Linked List
@@ -187,16 +233,17 @@ T THashMap<T>::find(int key) const{
 	int dubHash = hashFunction2(key);
 
 	//TList<T>* matchingList = _hashTable->get(hashVal);
-	T toRem = nullptr;
+	T found = T();
 
 	for(int i = 0; i < _size; i++) {
 		if(_table[hashVal] != nullptr) {
-			if(key == _table[hashVal].getKey()) {
-				return *_table[hashVal];
+			if(key == _table[hashVal]->getKey()) {
+				return *(_table[hashVal]);
 			}
 		}
+		hashVal = (hashVal + dubHash) % _size;
 	}
-	return toRem;
+	return found;
 }
 
 template<typename T>
@@ -207,7 +254,7 @@ T THashMap<T>::find(const T& obj) const{
 
 template<typename T>
 int THashMap<T>::hashFunction(int key) const{
-	return key % size();
+	return key % _size;
 }
 
 //Double hashing implementation to add an increment to search for unoccupied bin.
@@ -215,12 +262,12 @@ int THashMap<T>::hashFunction(int key) const{
 //traversal of all possible buckets
 template<typename T>
 int THashMap<T>::hashFunction2(int key) const{
-	int key2 = (key % (size()/3)) + 1;
+	int key2 = (key % (_size/3)) + 1;
 
 	//If the number of buckets is divisible by the key, increment key
 	//Or if both the buckets and the key have the same parity, increment key
 	if(key2 != 1) {
-		while(((size() % key2) == 0) || ((key2 % 2) == (size() % 2))) {
+		while(((_size % key2) == 0) || ((key2 % 2) == (_size % 2))) {
 			key2 = key2 + 1;
 		}
 	}
@@ -229,8 +276,40 @@ int THashMap<T>::hashFunction2(int key) const{
 
 template<typename T>
 int THashMap<T>::size() const {
-	return _hashTable->size();
+	return _size;
 }
+
+template<typename T>
+int THashMap<T>::numElements() const {
+	return _mapList->size();
+}
+
+template<typename T>
+double THashMap<T>::load() const {
+	return static_cast<double>(numElements()) / static_cast<double>(_size);
+}
+
+template<typename T>
+std::ostream& THashMap<T>::displayList(std::ostream& os) {
+	os << _mapList;
+	return os;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const THashMap<T>* thisObject) {
+	for(int i = 0; i < thisObject->_size; i++) {
+		os << "Bucket: " << i << " - Content [";
+		if(thisObject->_table[i] == nullptr) {
+			os << "NULL";
+		} else {
+			os << *(thisObject->_table[i]);
+		}
+		os << "]" << endl << endl;
+	}
+
+	return os;
+}
+
 
 
 #endif /* SRC_THASHMAP_H_ */

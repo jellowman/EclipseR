@@ -6,6 +6,7 @@
 #include "Tarray.h"
 #include "Eclipse.h"
 #include "TList.h"
+#include "THashMap.h"
 using namespace std;
 
 //Main method of program, handles input and output for eclipse data
@@ -30,7 +31,7 @@ void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTa
 void SortValues(Tarray<Eclipse>* eclipses, int& sortBy);
 
 //Find values
-void FindValues(Tarray<Eclipse>* eclipses, int& sortBy, Tarray<string>* header);
+void FindValues(Tarray<Eclipse>* eclipses, int& sortBy, Tarray<string>* header, THashMap<Eclipse>* eMap);
 
 //Function to take the whitespace separated columns in nextLine and
 //put them in individual string indexes in columns.
