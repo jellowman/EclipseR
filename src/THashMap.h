@@ -44,7 +44,7 @@ private:
 	//The number of buckets for the hashmap
 	int _size;
 	//Determines how many extra buckets will be supplied to avoid inserting into a near-full hashmap
-	static constexpr double EXTRA_BUCKET_MULTIPLIER = 1.3;
+
 
 	int hashFunction(int key) const;
 	int hashFunction2(int key) const;
@@ -87,7 +87,7 @@ THashMap<T>::~THashMap() {
 template<typename T>
 THashMap<T>::THashMap(int size) {
 	//_hashTable = new Tarray<TList<T> >(size);
-	_size = (size*EXTRA_BUCKET_MULTIPLIER);
+	_size = (size*1.3);
 	_table = new T*[_size];
 	for(int i = 0; i < _size; i++) {
 		_table[i] = nullptr;
