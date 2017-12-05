@@ -20,7 +20,9 @@ public:
 	Eclipse(string name);
 	Eclipse(const Eclipse& otherEcl);
 	void operator=(const Eclipse& otherEcl);
-	bool operator==(const Eclipse& otherEcl);
+	bool operator==(const Eclipse& otherEcl) const;
+	bool operator>(const Eclipse& otherEcl) const;
+	bool operator<(const Eclipse& otherEcl) const;
 	string getName();
 	string getCol(int i) const;
 	bool isEmpty() const;
@@ -28,9 +30,9 @@ public:
 	void setName(string newName);
 	void setParts(const Tarray<string>& otherParts);
 	Month getMonth() const;
-	int compareTo(const Eclipse& otherEclipse, int numCol);
-	int compare(const Eclipse& otherEclipse);
-	int compareToStr(const string& term, int numCol);
+	int compareTo(const Eclipse& otherEclipse, int numCol) const;
+	int compare(const Eclipse& otherEclipse) const;
+	int compareToStr(const string& term, int numCol) const;
 	int getKey() const;
 	friend ostream& operator << (ostream& os, const Eclipse& theEclipse);
 private:

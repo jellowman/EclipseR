@@ -137,7 +137,7 @@ Month Eclipse::getMonth() const{
 }
 
 //Comparison method for sorting eclipses
-int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
+int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) const{
 	int diff;
 	double dubDiff;
 	switch(numCol) {
@@ -215,7 +215,7 @@ int Eclipse::compareTo(const Eclipse& otherEclipse, int numCol) {
 	}*/
 }
 
-bool Eclipse::operator==(const Eclipse& otherEclipse) {
+bool Eclipse::operator==(const Eclipse& otherEclipse) const{
 	if(this->compareTo(otherEclipse, 0) == 0) {
 		return true;
 	} else {
@@ -223,12 +223,28 @@ bool Eclipse::operator==(const Eclipse& otherEclipse) {
 	}
 }
 
-int Eclipse::compare(const Eclipse& otherEclipse) {
+bool Eclipse::operator>(const Eclipse& otherEclipse) const{
+	if(this->compareTo(otherEclipse, 0) > 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Eclipse::operator<(const Eclipse& otherEclipse) const{
+	if(this->compareTo(otherEclipse, 0) < 0	) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+int Eclipse::compare(const Eclipse& otherEclipse) const{
 	return (this->compareTo(otherEclipse, 0));
 }
 
 //Compares specified eclipse column to a string value
-int Eclipse::compareToStr(const string& term, int numCol) {
+int Eclipse::compareToStr(const string& term, int numCol) const{
 	int diff;
 	double dubDiff;
 	switch(numCol) {
