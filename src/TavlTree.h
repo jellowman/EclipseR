@@ -358,11 +358,259 @@ protected:
 	virtual BinarySearchTree<T>* makeSubtree();
 	virtual void makeNull();
 	virtual void _makeEmpty();
+	TAVLTree<T>* avlleft();
+	TAVLTree<T>* avlright();
+	virtual void _insert(T& data);
+	virtual void zig();
+	virtual void zag();
+	virtual void rebalance();
+	virtual void _remove(T& data);
 public:
+	TAVLTree();
+	TAVLTree(T& data);
 	virtual ~TAVLTree();
 	virtual void makeEmpty();
+	virtual void printTree(ostream& os, int level);
+	int difference();
+	virtual void insert(T& data);
+	virtual void remove(T& data);
 };
 
+template<typename T>
+TAVLTree<T>::TAVLTree() : SelfModifyingBST<T>() {
+	_diff = 0;
+}
 
+template<typename T>
+TAVLTree<T>::TAVLTree(T& data) : SelfModifyingBST<T>(data) {
+	_diff = 0;
+}
+
+template<typename T>
+BinarySearchTree<T>* TAVLTree<T>::makeSubtree() {
+	TAVLTree<T>* bst = new TAVLTree();
+	bst->subtree() = true;
+	return bst;
+}
+
+template<typename T>
+void TAVLTree<T>::_makeEmpty() {
+	if(_root != NULL) {
+		delete _root;
+		_root = NULL;
+	}
+	if(_left != NULL) {
+		delete _left;
+		_left = NULL;
+	}
+	if(_right != NULL) {
+		delete _right;
+		_right = NULL;
+	}
+	_diff = 0;
+}
+
+template<typename T>
+void TAVLTree<T>::makeEmpty() {
+	if(_subtree) throw BinarySearchTreeChangeSubtree();
+	_makeEmpty();
+}
+
+template<typename T>
+void TAVLTree<T>::makeNull() {
+	SelfModifyingBST<T>::makeNull();
+	_diff = 0;
+}
+
+template<typename T>
+int TAVLTree<T>::difference() {
+	return _diff;
+}
+
+template<typename T>
+TAVLTree<T>* TAVLTree<T>::avlleft() {
+	return ((TAVLTree<T>*)_left);
+}
+
+template<typename T>
+TAVLTree<T>* TAVLTree<T>::avlright() {
+	return ((TAVLTree<T>*)_right);
+}
+
+template<typename T>
+void TAVLTree<T>::insert(T& data) {
+	if(_subtree) throw BinarySearchTreeChangeSubtree();
+	_insert(data);
+}
+
+template<typename T>
+void TAVLTree<T>::_insert(T& data) {
+	//If no data is stored in current node, enter data and create new leafs
+	if(isEmpty()) { //If current node is empty
+		_root = new T(data);
+		_left = makeSubtree();
+		_right = makeSubtree();
+		_diff = 0;
+		return;
+	}
+
+	if(*(_root) == data) { //If data equals the root data
+		delete _root;
+		_root = new T(data);
+		return;
+	}
+
+	int oldDiff;
+	if((*_root) > data) { //If data to be inserted is less than root
+		if(avlleft()->isEmpty()) {
+			avlleft()->_insert(data);
+			_diff--;
+		} else {
+			oldDiff = avlleft()->_diff
+			avlleft()->_insert(data);
+
+			if((oldDiff != avlleft()->_diff) && (avlleft()->_diff != 0)) {
+				_diff--;
+			}
+		}
+	} else { //If data to be inserted is greater than root
+		if(avlright()->isEmpty()) {
+			avlright()->_insert(data);
+			_diff++;
+		} else {
+			oldDiff = avlright()->_diff;
+			avlright()->_insert(data);
+
+			if((oldDiff != avlright()->_diff) && (avlright()->_diff != 0)) {
+				_diff++;
+			}
+		}
+	}
+
+	rebalance();
+}
+
+template<typename T>
+void TAVLTree<T>::zig() {
+	if(isEmpty()) return;
+	if(_left->isEmpty()) return;
+
+	int grandDiff = _diff;
+	int parentDiff = avlleft()->_diff;
+
+	SelfModifyingBST<T>::zig();
+
+	if(parentDiff < 0) { //Left of grandDiff is defined by the left of parentDiff
+		avlright()->_diff = grandDiff - parentDiff + 1;
+		_diff = grandDiff + 2;
+	} else {
+		avlright()->_diff = 1 + grandDiff;
+		_diff = 1 + parentDiff;
+	}
+}
+
+template<typename T>
+void TAVLTree<T>::zag() {
+	if(isEmpty()) return;
+	if(_right->isEmpty()) return;
+
+	int grandDiff = _diff;
+	int parentDiff = avlright()->_diff;
+
+	SelfModifyingBST<T>::zag();
+
+	if(parentDiff > 0) { //Right of grandDiff is defined by the right of parentDiff
+		avlleft()->_diff = grandDiff - parentDiff - 1;
+		_diff = grandDiff - 2;
+	} else {
+		avlleft()->_diff = grandDiff - 1;
+		_diff = parentDiff - 1;
+	}
+}
+
+template<typename T>
+void TAVLTree<T>::rebalance() {
+	if((_diff >= -1) && (_diff <= 1)) {
+		return;
+	}
+	else if((_diff < 0) && (avlleft()->_diff <= 0)) {
+		zig(); //left-left violation
+	}
+	else if((_diff < 0) && (avlleft()->_diff) > 0) {
+		zigzag(); //left-right violation
+	}
+	else if((_diff > 0) && (avlright()->_diff) < 0) {
+		zagzig(); //right-left violation
+	}
+	else if((_diff > 0) && (avlright()->_diff) >= 0) {
+		zag(); //right-right violation
+	}
+
+}
+
+template<typename T>
+void TAVLTree<T>::remove(T& data) {
+	if(_subtree) throw BinarySearchTreeChangeSubtree();
+	_remove(data);
+}
+
+template<typename T>
+void TAVLTree<T>::_remove(T& data) {
+	if(isEmpty()) throw BinarySearchTreeNotFound();
+	int oldDiff;
+
+	if((*_root) > data) {
+		oldDiff = avlleft()->_diff;
+		avlleft()->_remove(data);
+
+		if((_left->isEmpty()) || ((avlleft()->_diff != oldDiff) && (avlleft()->_diff == 0))) {
+			_diff++;
+		}
+	}
+	else if((*_root) < data) {
+		oldDiff = avlright()->_diff;
+		avlright()->_remove(data);
+
+		if((_right->isEmpty()) || ((avlright()->_diff != oldDiff) && (avlright()->_diff == 0))) {
+			_diff--;
+		}
+	}
+	else {
+		if(_right->isEmpty()) {
+			TAVLTree<T>* oldLeft = avlleft();
+			delete _right;
+			delete _root;
+			copyTree(_left);
+			oldLeft->makeNull();
+			delete oldLeft;
+			_diff = 0;
+		}
+		else if(_left->isEmpty()) {
+			TAVLTree<T>* oldRight = avlright();
+			delete _left;
+			delete _root;
+			copyTree(_right);
+			oldRight->makeNull();
+			delete oldRight;
+			_diff = 0;
+		}
+		else {
+			TAVLTree<T>* succ = avlright();
+			while(!succ->_left->isEmpty()) {
+				succ = succ->avlleft();
+			}
+			delete _root;
+			_root = new T(*(succ->_root));
+
+			oldDiff = avlright()->_diff;
+			avlright()->_remove(*(succ->_root));
+			if((_right->isEmpty()) || ((avlright()->_diff != oldDiff) && (avlright()->_diff == 0))) {
+				_diff--;
+			}
+		}
+	}
+
+	rebalance();
+}
 
 #endif /* TAVLTREE_H_ */
