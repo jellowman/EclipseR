@@ -7,22 +7,23 @@
 #include "Eclipse.h"
 #include "TList.h"
 #include "THashMap.h"
+#include "TavlTree.h"
 using namespace std;
 
 //Main method of program, handles input and output for eclipse data
 int main();
 
 //Reads from a file specified by inFS and parses data into eclipse Linked List
-bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseArray, Tarray<string> *header, int& dataTally, int& validTally);
+bool ReadFile(ifstream& inFS, TAVLTree<Eclipse> *eclipseTree, Tarray<string> *header, int& dataTally, int& validTally);
 
 //Reads from a file specified by inFS and parses eclipseData. Removes matching eclipses from Linked List
-bool ReadFileDel(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *header);
+bool ReadFileDel(ifstream& inFS, TAVLTree<Eclipse> *eclipseTree, Tarray<string> *header);
 
 //Merges new eclipse data into the Linked List
-void MergeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally);
+void MergeData(TAVLTree<Eclipse> *eclipseTree, int& dataTally, int& validTally);
 
 //Deletes eclipse data from the Linked List that matches eclipses specified in the purge data file
-void PurgeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally);
+void PurgeData(TAVLTree<Eclipse> *eclipseTree, int& dataTally, int& validTally);
 
 //Output values to a file
 void OutputValues(Tarray<Eclipse>* eclipses, Tarray<string>* header, int& dataTally, int& validTally);

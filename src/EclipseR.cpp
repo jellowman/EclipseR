@@ -14,6 +14,7 @@
 #include "Eclipse.h"
 #include "TList.h"
 #include "THashMap.h"
+#include "TavlTree.h"
 using namespace std;
 
 
@@ -34,7 +35,8 @@ int main() {
 	//Keep track of eclipses (Linked List of Eclipses)
 	//Array List will be used for sorting
 	//Tarray<Eclipse> *eclipses = new Tarray<Eclipse>(10);
-	TList<Eclipse>* eclipseList = new TList<Eclipse>();
+	//TList<Eclipse>* eclipseList = new TList<Eclipse>();
+	TAVLTree<Eclipse>* eclipseTree = new TAVLTree<Eclipse>();
 
 	//Hold trash at beginning of file
 	Tarray<string> *header = new Tarray<string>();
@@ -62,7 +64,7 @@ int main() {
 				//------NEW IN EclipseR 2.0--------
 				//Reads in data into a linked list
 				//---------------------------------
-				bool hasData = ReadFile(inFS, eclipseList, header, dataTally, validTally);
+				bool hasData = ReadFile(inFS, eclipseTree, header, dataTally, validTally);
 				//Data has been read at least once
 				if(hasData) {
 					anyData = true;
@@ -79,8 +81,11 @@ int main() {
 	if(!anyData) {
 		return 0;
 	}
-
 	//Assign read-in data file to Array List from the Linked List of Eclipses.
+	//Print out
+	//eclipseTree->postOrder(cout);
+	TList<Eclipse>* eclipseList = new TList<Eclipse>();
+	eclipseTree->buildList(eclipseList);
 	Tarray<Eclipse>* eclipses = new Tarray<Eclipse>(eclipseList->toArray());
 	THashMap<Eclipse>* eMap = new THashMap<Eclipse>(*eclipses);
 
@@ -91,7 +96,8 @@ int main() {
 	do {
 		cout << "Choose to (O)utput, (S)ort, (F)ind, or (Q)uit" << endl
 				<< "(M)erge, (P)urge, (C)[Print linked list]" << endl
-				<< "(L)[Print In-Order insert of HashMap], (H)ashMap Structure" << endl;
+				<< "(L)[Print In-Order insert of HashMap], (H)ashMap Structure" << endl
+				<< "P(R)e Order Tree Traversal, Pos(T) Order Tree Traversal" << endl;
 		string userChoice;
 		getline(cin, userChoice);
 		char firstLetter = userChoice[0];
@@ -115,18 +121,24 @@ int main() {
 		case 'm':
 		case 'M':
 			//Merge new data from new file
-			MergeData(eclipseList, dataTally, validTally);
+			MergeData(eclipseTree, dataTally, validTally);
+			delete eclipseList;
 			delete eclipses;
 			delete eMap;
+			eclipseList = new TList<Eclipse>();
+			eclipseTree->buildList(eclipseList);
 			eclipses = new Tarray<Eclipse>(eclipseList->toArray());
 			eMap = new THashMap<Eclipse>(*eclipses);
 			break;
 		case 'p':
 		case 'P':
 			//Purge data specified in file
-			PurgeData(eclipseList, dataTally, validTally);
+			PurgeData(eclipseTree, dataTally, validTally);
+			delete eclipseList;
 			delete eclipses;
 			delete eMap;
+			eclipseList = new TList<Eclipse>();
+			eclipseTree->buildList(eclipseList);
 			eclipses = new Tarray<Eclipse>(eclipseList->toArray());
 			eMap = new THashMap<Eclipse>(*eclipses);
 			break;
@@ -142,8 +154,16 @@ int main() {
 			break;
 		case 'h':
 		case 'H':
-			//Print out the debut hashmap structure
+			//Print out the default hashmap structure
 			cout << eMap;
+			break;
+		case 'r':
+		case 'R':
+			eclipseTree->preOrder(cout);
+			break;
+		case 't':
+		case 'T':
+			eclipseTree->postOrder(cout);
 			break;
 		case 'q':
 		case 'Q':
@@ -161,7 +181,7 @@ int main() {
 }
 
 //Reads in
-bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *header, int& dataTally, int& validTally) {
+bool ReadFile(ifstream& inFS, TAVLTree<Eclipse> *eclipseTree, Tarray<string> *header, int& dataTally, int& validTally) {
 
 	//bool eclipseID[20000];
 	//Variable used to hold next line from the eclipse data text file
@@ -249,16 +269,19 @@ bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *heade
 		idNum = stoi(columnStrings->get(0));
 		//Iterate through eclipses to compare idNums
 		//bool uniqueID = true;
-		int indexOfDuplicate = 0;
+		int indexOfDuplicate = -1;
 		Eclipse *newEclipse = new Eclipse();
 		newEclipse->setParts(*columnStrings);
-		indexOfDuplicate = eclipseList->find(*newEclipse);
-		/*for(int i = 0; i < eclipseList->size(); i++) {
-			if(idNum == eclipses->get(i).getID()) {
-				uniqueID = false;
-				indexOfDuplicate = i;
-			}
-		}*/
+		//indexOfDuplicate = eclipseList->find(*newEclipse);
+		try{
+		Eclipse foundEclipse = eclipseTree->find(*newEclipse);
+		} catch(BinarySearchTreeEmpty& e) {
+			indexOfDuplicate = 0; //If not there, ID not found, set to something other than -1
+		}
+
+		//Insert reguardless, tree structure will update data if duplicate
+		eclipseTree->insert(*newEclipse);
+
 		if(indexOfDuplicate != -1) { //Duplicate ID found, replace
 			cerr << "Error in data row " << lineNum << ": Duplicate catalog number "
 					<< idNum << "." << endl;
@@ -267,8 +290,9 @@ bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *heade
 			//newEclipse->setParts(*columnStrings);
 			//eclipseList->removeAt(indexOfDuplicate);
 			//eclipseList->insertSorted(*newEclipse);
-			Eclipse dupEclipse = eclipseList->getAt(indexOfDuplicate);
-			dupEclipse = *(newEclipse);
+			//Eclipse dupEclipse = eclipseList->getAt(indexOfDuplicate);
+			//dupEclipse = *(newEclipse);
+
 		} else {
 			//Indicate an ID has been used
 			//eclipseID[idNum] = true;
@@ -276,7 +300,7 @@ bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *heade
 			//Add to eclipse array
 			//Eclipse *newEclipse = new Eclipse();
 			//newEclipse->setParts(*columnStrings);
-			eclipseList->insertSorted(*newEclipse);
+			//eclipseList->insertSorted(*newEclipse);
 		}
 		if(!inFS.good()) //DOES NOT WORK, attempt to break out if end of file is reached
 		{
@@ -285,12 +309,11 @@ bool ReadFile(ifstream& inFS, TList<Eclipse> *eclipseList, Tarray<string> *heade
 		}
 
 	} //END while loop
-
-	bool hasData = (eclipseList->size() > 0) ? true : false;
+	bool hasData = (!eclipseTree->isEmpty()) ? true : false;
 	return hasData;
 } //END ReadFile method
 
-bool ReadFileDel(ifstream& inFS, TList<Eclipse>* eclipseList, Tarray<string> *header) {
+bool ReadFileDel(ifstream& inFS, TAVLTree<Eclipse> *eclipseTree, Tarray<string> *header) {
 	//bool eclipseID[20000];
 	//Variable used to hold next line from the eclipse data text file
 	string nextLine;
@@ -377,17 +400,22 @@ bool ReadFileDel(ifstream& inFS, TList<Eclipse>* eclipseList, Tarray<string> *he
 		idNum = stoi(columnStrings->get(0));
 		//Iterate through eclipses to compare idNums
 		//bool uniqueID = true;
-		int indexOfDuplicate = 0;
+		int indexOfDuplicate = -1;
 		Eclipse *newEclipse = new Eclipse();
 		newEclipse->setParts(*columnStrings);
-		indexOfDuplicate = eclipseList->find(*newEclipse);
+		//indexOfDuplicate = eclipseList->find(*newEclipse);
 		/*for(int i = 0; i < eclipseList->size(); i++) {
 			if(idNum == eclipses->get(i).getID()) {
 				uniqueID = false;
 				indexOfDuplicate = i;
 			}
 		}*/
-		if(indexOfDuplicate != -1) { //Duplicate ID found, remove from linked list
+		try{
+			eclipseTree->remove(*newEclipse);
+		} catch(BinarySearchTreeNotFound& e) {
+			indexOfDuplicate = 0;
+		}
+		/*if(indexOfDuplicate != -1) { //Duplicate ID found, remove from linked list
 			cerr << "Error in data row " << lineNum << ": Duplicate catalog number "
 					<< idNum << "." << endl;
 
@@ -395,8 +423,8 @@ bool ReadFileDel(ifstream& inFS, TList<Eclipse>* eclipseList, Tarray<string> *he
 			//newEclipse->setParts(*columnStrings);
 			//eclipseList->removeAt(indexOfDuplicate);
 			//eclipseList->insertSorted(*newEclipse);
-			eclipseList->removeAt(indexOfDuplicate);
-		}
+			//eclipseList->removeAt(indexOfDuplicate);
+		}*/
 
 		if(!inFS.good()) //DOES NOT WORK, attempt to break out if end of file is reached
 		{
@@ -406,11 +434,11 @@ bool ReadFileDel(ifstream& inFS, TList<Eclipse>* eclipseList, Tarray<string> *he
 
 	} //END while loop
 	//cout << eclipseList << endl;
-	bool hasData = (eclipseList->size() > 0) ? true : false;
+	bool hasData = (eclipseTree->isEmpty()) ? true : false;
 	return hasData;
 } //END ReadFileDEL method
 
-void MergeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally) {
+void MergeData(TAVLTree<Eclipse> *eclipseTree, int& dataTally, int& validTally) {
 	cout << "Enter the name of an eclipse data file." << endl;
 	string fileName;
 	getline(cin, fileName);
@@ -427,14 +455,14 @@ void MergeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally) {
 			//------NEW IN EclipseR 2.0--------
 			//Reads in data into a linked list
 			//---------------------------------
-			ReadFile(inFS, eclipseList, header, dataTally, validTally);
+			ReadFile(inFS, eclipseTree, header, dataTally, validTally);
 			//Data has been read at least once
 		}
 		inFS.close();
 	}
 }
 
-void PurgeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally) {
+void PurgeData(TAVLTree<Eclipse> *eclipseTree, int& dataTally, int& validTally) {
 	cout << "Enter the name of an eclipse data file." << endl;
 	string fileName;
 	getline(cin, fileName);
@@ -451,7 +479,7 @@ void PurgeData(TList<Eclipse>* eclipseList, int& dataTally, int& validTally) {
 			//------NEW IN EclipseR 2.0--------
 			//Reads in data into a linked list
 			//---------------------------------
-			ReadFileDel(inFS, eclipseList, header);
+			ReadFileDel(inFS, eclipseTree, header);
 			//Data has been read at least once
 		}
 		inFS.close();

@@ -12,14 +12,19 @@
 #define TAVLTREE_H_
 
 #include <iostream>
+#include "TList.h"
 using namespace std;
 
 template<typename T>
 class BinarySearchTree {
 protected:
-	T* _info;
+	//Contains the abstract data stored in this node
+	T* _root;
+	//Left subtree
 	BinarySearchTree<T>* _left;
+	//Right Subtree
 	BinarySearchTree<T>* _right;
+	//Ensures that only certain methods are called on the head of the tree
 	bool _subtree;
 
 	virtual BinarySearchTree<T>* makeSubtree();
@@ -42,6 +47,10 @@ public:
 	virtual void remove(const T& data);
 	//virtual void rangeSearch(const T& low, const T& high);
 	virtual void insert(const T& data);
+	virtual void preOrder(ostream& os);
+	virtual void postOrder(ostream& os);
+	virtual void inOrder(ostream& os);
+	virtual void buildList(TList<T>* list);
 };
 class BinarySearchTreeException : std::exception { };
 class BinarySearchTreeEmpty : BinarySearchTreeException { };
@@ -52,7 +61,7 @@ class BinarySearchTreeNotFound : BinarySearchTreeException { };
  */
 template<typename T>
 BinarySearchTree<T>::BinarySearchTree() {
-	_info = NULL;
+	_root = NULL;
 	_left = NULL;
 	_right = NULL;
 	_subtree = false;
@@ -60,7 +69,7 @@ BinarySearchTree<T>::BinarySearchTree() {
 
 template<typename T>
 BinarySearchTree<T>::BinarySearchTree(T& otherData) {
-	_info = new T(otherData);
+	_root = new T(otherData);
 	_left = makeSubtree();
 	_right = makeSubtree();
 	_subtree = false;
@@ -75,29 +84,29 @@ BinarySearchTree<T>* BinarySearchTree<T>::makeSubtree() {
 
 template<typename T>
 void BinarySearchTree<T>::copyTree(BinarySearchTree<T>* otherTree) {
-	_info = otherTree->_info;
+	_root = otherTree->_root;
 	_left = otherTree->_left;
 	_right = otherTree->_right;
 	//Don't change _subtree since the root node may copy data from a leaf
 	//_subtree = otherTree->_subtree;
 }
 
-/*template<typename T>
+template<typename T>
 BinarySearchTree<T>::~BinarySearchTree() {
-	if(_info != NULL) {
-		_info == NULL;
+	if(_root != NULL) {
+		_root = NULL;
 	}
 	if(_left != NULL) {
-		_left == NULL;
+		_left = NULL;
 	}
 	if(_right != NULL) {
-		_right == NULL;
+		_right = NULL;
 	}
-}*/
+}
 
 template<typename T>
 bool BinarySearchTree<T>::isEmpty() {
-	return (_info == NULL);
+	return (_root == NULL);
 }
 
 template<typename T>
@@ -123,7 +132,7 @@ T& BinarySearchTree<T>::root() {
 	if(isEmpty()	) {
 		throw BinarySearchTreeEmpty();
 	}
-	return *_info;
+	return *_root;
 }
 
 template<typename T>
@@ -141,12 +150,15 @@ bool BinarySearchTree<T>::subtree() {
 	return _subtree;
 }
 
+/*
+ * Used to remove all data from the tree
+ */
 template<typename T>
 void BinarySearchTree<T>::makeEmpty() {
 	if(_subtree) throw BinarySearchTreeException();
-	if(_info != NULL) {
-		delete _info;
-		_info = NULL;
+	if(_root != NULL) {
+		delete _root;
+		_root = NULL;
 	}
 	if(_left != NULL) {
 		delete _left;
@@ -158,9 +170,12 @@ void BinarySearchTree<T>::makeEmpty() {
 	}
 }
 
+/*
+ * Remove pointers from a node, used when moving data
+ */
 template<typename T>
 void BinarySearchTree<T>::makeNull() {
-	_info = NULL;
+	_root = NULL;
 	_left = NULL;
 	_right = NULL;
 }
@@ -171,9 +186,9 @@ T BinarySearchTree<T>::find(const T& data) {
 
 	while(true) {
 		if(bst->isEmpty()) throw BinarySearchTreeEmpty();
-		if( *(bst->_info) < data) {
+		if( *(bst->_root) < data) {
 			bst = bst->_right;
-		} else if(*(bst->_info) > data) {
+		} else if(*(bst->_root) > data) {
 			bst = bst->_left;
 		} else {
 			return bst->root();
@@ -189,9 +204,9 @@ BinarySearchTree<T>* BinarySearchTree<T>::_find(const T& data) {
 		if(bst->isEmpty()) {
 			return bst;
 		}
-		if( *(bst->_info) < data) {
+		if( *(bst->_root) < data) {
 			bst = bst->_right;
-		} else if(*(bst->_info) > data) {
+		} else if(*(bst->_root) > data) {
 			bst = bst->_left;
 		} else {
 			return bst;
@@ -204,12 +219,12 @@ void BinarySearchTree<T>::insert(const T& data) {
 	if(_subtree) throw BinarySearchTreeChangeSubtree();
 	BinarySearchTree<T>* bst = _find(data);
 	if(bst->isEmpty()) {
-		bst->_info = new T(data);
+		bst->_root = new T(data);
 		bst->_left = makeSubtree();
 		bst->_right = makeSubtree();
 	} else {
-		delete bst->_info;
-		bst->_info = new T(data);
+		delete bst->_root;
+		bst->_root = new T(data);
 	}
 }
 
@@ -222,9 +237,9 @@ void BinarySearchTree<T>::remove(const T& data) {
 	BinarySearchTree<T>* bst3;
 
 	//Find pointer to element to remove, otherwise handle if the data wasn't present
-	bst1->find(data);
+	bst1 = _find(data);
 	if(bst1->isEmpty()) throw BinarySearchTreeNotFound();
-	delete bst1->_info;
+	delete bst1->_root;
 
 	if(bst1->_left->isEmpty()) {
 		//Make node with removed element equal to right subtree
@@ -249,7 +264,7 @@ void BinarySearchTree<T>::remove(const T& data) {
 			bst2 = bst2->_left;
 		}
 
-		bst1->_info = bst2->_info;
+		bst1->_root = bst2->_root;
 
 		//Replace the old location with the right node, if it exists
 		delete bst2->_left;
@@ -266,10 +281,53 @@ void BinarySearchTree<T>::remove(const T& data) {
 	}
 }
 
+/*
+ * ---Printing Methods---
+ */
+template<typename T>
+void BinarySearchTree<T>::preOrder(ostream& os){
+	if(isEmpty()) return;
+	os << root() << endl;
+	_left->preOrder(os);
+	_right->preOrder(os);
+}
+
+template<typename T>
+void BinarySearchTree<T>::postOrder(ostream& os){
+	if(isEmpty()) return;
+	_left->postOrder(os);
+	_right->postOrder(os);
+	os << root() << endl;
+}
+
+template<typename T>
+void BinarySearchTree<T>::inOrder(ostream& os) {
+	if(isEmpty()) return;
+	_left->inOrder(os);
+	os << root() << endl;
+	_right->inOrder(os);
+}
+
+/*
+ * Construct a linked list from the data in the Tree. Adds elements in order into the list
+ */
+template<typename T>
+void BinarySearchTree<T>::buildList(TList<T>* list) {
+	if(isEmpty()) return;
+	_right->buildList(list);
+	list->add(*_root);
+	_left->buildList(list);
+}
+
 //BEGIN SELF_MODIFYING_BST_CLASSES
 template<typename T>
 class SelfModifyingBST : public BinarySearchTree<T> {
 protected:
+	using BinarySearchTree<T>::_root;
+	using BinarySearchTree<T>::_left;
+	using BinarySearchTree<T>::_right;
+	using BinarySearchTree<T>::_subtree;
+
 	BinarySearchTree<T>* makeSubtree();
 	virtual void zig();
 	virtual void zag();
@@ -299,9 +357,12 @@ BinarySearchTree<T>* SelfModifyingBST<T>::makeSubtree() {
 	return bst;
 }
 
+/*
+ * Rotate tree to the right at a given node
+ */
 template<typename T>
 void SelfModifyingBST<T>::zag() {
-	if(isEmpty()	) return;
+	if(this->isEmpty()) return;
 	if(_right->isEmpty()) return;
 
 	SelfModifyingBST<T>* rightChild = (SelfModifyingBST<T>*)_right;
@@ -312,12 +373,15 @@ void SelfModifyingBST<T>::zag() {
 	swap (_root, rightChild->_root);
 }
 
+/*
+ * Rotate tree to the left at a given node
+ */
 template<typename T>
 void SelfModifyingBST<T>::zig() {
-	if(isEmpty()) return;
+	if(this->isEmpty()) return;
 	if(_left->isEmpty()) return;
 
-	SelfModifyingBST<T>* leftChild = (SelfModigyingBST<T>*)_left;
+	SelfModifyingBST<T>* leftChild = (SelfModifyingBST<T>*)_left;
 	_left = leftChild->_left;
 	leftChild->_left = leftChild->_right;
 	leftChild->_right = _right;
@@ -325,26 +389,38 @@ void SelfModifyingBST<T>::zig() {
 	swap (_root, leftChild->_root);
 }
 
+/*
+ * Left rotation followed by a right rotation
+ */
 template<typename T>
 void SelfModifyingBST<T>::zagzig() {
-	if(isEmpty()) return;
+	if(this->isEmpty()) return;
 	((SelfModifyingBST<T>*)_right)->zig();
 	zag();
 }
 
+/*
+ * Right rotation followed by a left rotation
+ */
 template<typename T>
 void SelfModifyingBST<T>::zigzag() {
-	if(isEmpty()) return;
+	if(this->isEmpty()) return;
 	((SelfModifyingBST<T>*)_left)->zag();
 	zig();
 }
 
+/*
+ * CURRNETLY UNUSED
+ */
 template<typename T>
 void SelfModifyingBST<T>::zigzig() {
 	zig();
 	zig();
 }
 
+/*
+ * CURRENTLY UNUSED
+ */
 template<typename T>
 void SelfModifyingBST<T>::zagzag() {
 	zag();
@@ -354,26 +430,32 @@ void SelfModifyingBST<T>::zagzag() {
 template<typename T>
 class TAVLTree : public SelfModifyingBST<T> {
 protected:
+	using BinarySearchTree<T>::_root;
+	using BinarySearchTree<T>::_left;
+	using BinarySearchTree<T>::_right;
+	using BinarySearchTree<T>::_subtree;
+
+	//Keep track of the balance of a node (right - left)
 	int _diff;
+
 	virtual BinarySearchTree<T>* makeSubtree();
 	virtual void makeNull();
 	virtual void _makeEmpty();
 	TAVLTree<T>* avlleft();
 	TAVLTree<T>* avlright();
-	virtual void _insert(T& data);
+	virtual void _insert(const T& data);
 	virtual void zig();
 	virtual void zag();
 	virtual void rebalance();
-	virtual void _remove(T& data);
+	virtual void _remove(const T& data);
 public:
 	TAVLTree();
 	TAVLTree(T& data);
 	virtual ~TAVLTree();
 	virtual void makeEmpty();
-	virtual void printTree(ostream& os, int level);
 	int difference();
-	virtual void insert(T& data);
-	virtual void remove(T& data);
+	virtual void insert(const T& data);
+	virtual void remove(const T& data);
 };
 
 template<typename T>
@@ -387,9 +469,22 @@ TAVLTree<T>::TAVLTree(T& data) : SelfModifyingBST<T>(data) {
 }
 
 template<typename T>
+TAVLTree<T>::~TAVLTree() {
+	if(_root != NULL) {
+		_root = NULL;
+	}
+	if(_left != NULL) {
+		_left = NULL;
+	}
+	if(_right != NULL) {
+		_right = NULL;
+	}
+}
+
+template<typename T>
 BinarySearchTree<T>* TAVLTree<T>::makeSubtree() {
 	TAVLTree<T>* bst = new TAVLTree();
-	bst->subtree() = true;
+	bst->_subtree = true;
 	return bst;
 }
 
@@ -438,15 +533,15 @@ TAVLTree<T>* TAVLTree<T>::avlright() {
 }
 
 template<typename T>
-void TAVLTree<T>::insert(T& data) {
+void TAVLTree<T>::insert(const T& data) {
 	if(_subtree) throw BinarySearchTreeChangeSubtree();
 	_insert(data);
 }
 
 template<typename T>
-void TAVLTree<T>::_insert(T& data) {
+void TAVLTree<T>::_insert(const T& data) {
 	//If no data is stored in current node, enter data and create new leafs
-	if(isEmpty()) { //If current node is empty
+	if(this->isEmpty()) { //If current node is empty
 		_root = new T(data);
 		_left = makeSubtree();
 		_right = makeSubtree();
@@ -466,7 +561,7 @@ void TAVLTree<T>::_insert(T& data) {
 			avlleft()->_insert(data);
 			_diff--;
 		} else {
-			oldDiff = avlleft()->_diff
+			oldDiff = avlleft()->_diff;
 			avlleft()->_insert(data);
 
 			if((oldDiff != avlleft()->_diff) && (avlleft()->_diff != 0)) {
@@ -492,7 +587,7 @@ void TAVLTree<T>::_insert(T& data) {
 
 template<typename T>
 void TAVLTree<T>::zig() {
-	if(isEmpty()) return;
+	if(this->isEmpty()) return;
 	if(_left->isEmpty()) return;
 
 	int grandDiff = _diff;
@@ -511,7 +606,7 @@ void TAVLTree<T>::zig() {
 
 template<typename T>
 void TAVLTree<T>::zag() {
-	if(isEmpty()) return;
+	if(this->isEmpty()) return;
 	if(_right->isEmpty()) return;
 
 	int grandDiff = _diff;
@@ -534,29 +629,29 @@ void TAVLTree<T>::rebalance() {
 		return;
 	}
 	else if((_diff < 0) && (avlleft()->_diff <= 0)) {
-		zig(); //left-left violation
+		this->zig(); //left-left violation
 	}
 	else if((_diff < 0) && (avlleft()->_diff) > 0) {
-		zigzag(); //left-right violation
+		this->zigzag(); //left-right violation
 	}
 	else if((_diff > 0) && (avlright()->_diff) < 0) {
-		zagzig(); //right-left violation
+		this->zagzig(); //right-left violation
 	}
 	else if((_diff > 0) && (avlright()->_diff) >= 0) {
-		zag(); //right-right violation
+		this->zag(); //right-right violation
 	}
 
 }
 
 template<typename T>
-void TAVLTree<T>::remove(T& data) {
+void TAVLTree<T>::remove(const T& data) {
 	if(_subtree) throw BinarySearchTreeChangeSubtree();
 	_remove(data);
 }
 
 template<typename T>
-void TAVLTree<T>::_remove(T& data) {
-	if(isEmpty()) throw BinarySearchTreeNotFound();
+void TAVLTree<T>::_remove(const T& data) {
+	if(this->isEmpty()) throw BinarySearchTreeNotFound();
 	int oldDiff;
 
 	if((*_root) > data) {
@@ -580,7 +675,7 @@ void TAVLTree<T>::_remove(T& data) {
 			TAVLTree<T>* oldLeft = avlleft();
 			delete _right;
 			delete _root;
-			copyTree(_left);
+			this->copyTree(_left);
 			oldLeft->makeNull();
 			delete oldLeft;
 			_diff = 0;
@@ -589,7 +684,7 @@ void TAVLTree<T>::_remove(T& data) {
 			TAVLTree<T>* oldRight = avlright();
 			delete _left;
 			delete _root;
-			copyTree(_right);
+			this->copyTree(_right);
 			oldRight->makeNull();
 			delete oldRight;
 			_diff = 0;
@@ -612,5 +707,7 @@ void TAVLTree<T>::_remove(T& data) {
 
 	rebalance();
 }
+
+
 
 #endif /* TAVLTREE_H_ */
